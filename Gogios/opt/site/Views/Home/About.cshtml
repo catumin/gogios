@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "About";
+}
+<h3>@ViewData["Message"]</h3>
+
+<p>
+Thank you for installing the Ginger Technology service checking system. Below is documentation on the current modules that I provide and how to use them.
+<br /><br />
+To add a check, edit /etc/gingertechengine/checks.json and add a new block. The format is:
+</p>
+
+<pre>
+{
+    "title": "The tilte of the check",
+    "command": "The command to run. For example 'echo 0'",
+    "expected": "The expected output of that command.",
+    "good": false
+}
+</pre>
+
+<p>
+Currently I have built modules to check SSH, FTP, POP3, SMTP, and DNS. These are stored in /var/lib/gingertechengine, and examples are the usage is available by running them with
+the --help flag, or by looking in /etc/gingertechengine/example.json.
+</p>

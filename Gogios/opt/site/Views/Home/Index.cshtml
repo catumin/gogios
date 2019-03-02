@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<h3>@ViewData["Message"]</h3>
+
+<p>
+Welcome to the service checking engine! Below are the services that are being checked. Their status should update roughly every three minutes.
+</p>
+
+<div style="margin-top:20px">
+@Html.Partial("Checks")
+</div>

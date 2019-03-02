@@ -1,0 +1,9 @@
+#!/bin/bash
+# Author: Bailey Kasin
+
+if [ ! -f /etc/gingertechengine/checks.json ]; then
+    echo "Making default check file"
+    mv /etc/gingertechengine/example.json /etc/gingertechengine/checks.json
+fi
+
+echo "Start gogios and gogios-web for the system to run."

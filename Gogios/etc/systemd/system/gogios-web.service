@@ -1,0 +1,9 @@
+[Unit]
+Description=Controls service check engine website
+After=network.target
+[Service]
+Type=simple
+User=root
+ExecStart=dotnet run --project /opt/site
+[Install]
+WantedBy=multi-user.target
