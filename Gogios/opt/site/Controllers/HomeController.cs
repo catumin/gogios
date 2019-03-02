@@ -15,13 +15,13 @@ namespace site.Controllers
     {
         public IActionResult Index()
         {
-            ViewData["Message"] = "Scoring Engine";
+            ViewData["Message"] = "Service Check Engine";
             return View();
         }
 
         public IActionResult About()
         {
-            ViewData["Message"] = "About Packer Systems";
+            ViewData["Message"] = "About";
 
             return View();
         }
