@@ -2,7 +2,7 @@
 
 pkgname=gogios-bin
 pkgver=1.1
-pkgrel=3
+pkgrel=4
 pkgdesc="Checks to see if required services are still running on important machines."
 arch=('x86_64')
 url="https://angrysysadmins.tech"
@@ -17,7 +17,7 @@ source=("gogios.deb")
 options=('!strip' '!emptydirs')
 install=${pkgname}.install
 noextract=("gogios.deb")
-sha256sums=('3dfbfe5c4185f1115c75df231d95f95469af36c24bd77e8e75acc07e9291c32e')
+sha256sums=('4428ca37a4a4ff709dd1f1fba1615784556710a0f18717142445e3105e1f82fe')
 
 package() {
     bsdtar -O -xf gogios.deb data.tar.xz | bsdtar -C "${pkgdir}" -xJf -

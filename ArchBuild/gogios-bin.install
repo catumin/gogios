@@ -7,7 +7,7 @@ post_install() {
         if id "gogios" >/dev/null 2>&1; then
                 echo "gogios user already exists"
         else
-                useradd -r gogios
+                useradd --system --no-create-home --shell /sbin/nologin gogios
         fi
 
         chown gogios:gogios -R /var/log/gingertechnology
@@ -20,14 +20,14 @@ post_install() {
 post_upgrade() {
         post_install
 
-        if [ systemctl is-enabled gogios.service ]; then
+        if systemctl is-enabled gogios.service; then
                 echo "Temporarily disabling gogios"
                 systemctl disable gogios.service
                 rm /etc/systemd/system/gogios.service
                 systemctl enable gogios.service
         fi
 
-        if [ systemctl is-enabled gogios-web.service ]; then
+        if systemctl is-enabled gogios-web.service; then
                 echo "Temporarily disabling gogios-web"
                 systemctl disable gogios-web.service
                 rm /etc/systemd/system/gogios-web.service

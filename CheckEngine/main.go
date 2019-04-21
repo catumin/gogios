@@ -44,8 +44,8 @@ func check(t time.Time) {
 	json.Unmarshal(raw, &c)
 
 	for i := 0; i < len(c); i++ {
-		var args = []string{"/bin/sh", "-c", c[i].Command}
-		var output = getCommandOutput("sudo", args)
+		var args = []string{"-c", c[i].Command}
+		var output = getCommandOutput("/bin/sh", args)
 		var status = "Failed"
 		c[i].Asof = time.Now().Format(time.RFC822)
 
