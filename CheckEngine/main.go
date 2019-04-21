@@ -67,7 +67,7 @@ func check(t time.Time) {
 	}
 
 	currentStatus, _ := json.Marshal(c)
-	err = ioutil.WriteFile("/opt/site/wwwroot/js/current.json", currentStatus, 0644)
+	err = ioutil.WriteFile("/opt/gingertechengine/js/current.json", currentStatus, 0644)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

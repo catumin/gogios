@@ -1,9 +1,8 @@
 Package: gogios
-Version: 1.1
+Version: 1.2
 Section: base
 Priority: optional
 Architecture: amd64
-Pro-Depends: dotnet-sdk
 Suggests: nginx
 Maintainer: Bailey Kasin <bailey@gingertechnology.net>
 Description: Checks to see

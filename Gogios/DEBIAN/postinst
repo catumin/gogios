@@ -12,6 +12,11 @@ else
     useradd --system --no-create-home --shell /sbin/nologin gogios
 fi
 
+chown gogios:gogios -R /var/log/gingertechnology
+chown gogios:gogios -R /var/lib/gingertechengine
+chown gogios:gogios -R /etc/gingertechengine
+chown gogios:gogios -R /opt/gingertechengine
+
 if systemctl is-enabled gogios.service; then
     echo "Temporarily disabling gogios"
     systemctl disable gogios.service
@@ -20,10 +25,9 @@ if systemctl is-enabled gogios.service; then
 fi
 
 if systemctl is-enabled gogios-web.service; then
-    echo "Temporarily disabling gogios-web"
+    echo "Disabling gogios-web"
     systemctl disable gogios-web.service
-    rm /etc/systemd/system/gogios-web.service
-    systemctl enable gogios-web.service
+    systemctl stop gogios-web.service
 fi
 
 systemctl stop gogios-web
@@ -31,4 +35,5 @@ systemctl stop gogios
 systemctl start gogios-web
 systemctl start gogios
 
-echo "Start gogios and gogios-web for the system to run."
+echo "Start gogios for the system to run."
+echo "You will need to install and a webserver and have it point to /opt/gingertechengine"
