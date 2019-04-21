@@ -14,6 +14,7 @@ import (
 
 var (
 	interval = flag.Int("interval", 3, "Time between check rounds")
+	verbose  = flag.Bool("verbose", false, "Verbose output in log. Will log the full output of the check to file. Always true when ran inline")
 )
 
 // Check - struct to format checks
@@ -22,6 +23,7 @@ type Check struct {
 	Command  string `json:"command"`
 	Expected string `json:"expected"`
 	Good     bool   `json:"good"`
+	Asof     string `json:"asof"`
 }
 
 func main() {
@@ -42,19 +44,30 @@ func check(t time.Time) {
 	json.Unmarshal(raw, &c)
 
 	for i := 0; i < len(c); i++ {
-		var args = []string{"/bin/bash", "-c", c[i].Command}
+		var args = []string{"/bin/sh", "-c", c[i].Command}
 		var output = getCommandOutput("sudo", args)
-		fmt.Println("Check " + c[i].Title + " return: " + output)
-		AppendStringToFile("/var/log/gingertechnology/service_check.log", time.Now().String()+" | Check "+c[i].Title+" return: "+output)
+		var status = "Failed"
+		c[i].Asof = time.Now().Format(time.RFC822)
+
 		if strings.Contains(output, c[i].Expected) {
 			c[i].Good = true
+			status = "Success"
 		} else if !strings.Contains(output, c[i].Expected) {
 			c[i].Good = false
 		}
+
+		fmt.Println("Check " + c[i].Title + " return: \n" + output)
+
+		if *verbose {
+			AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | Check "+c[i].Title+" status: "+status)
+			AppendStringToFile("/var/log/gingertechnology/service_check.log", "Output: \n"+output)
+		} else {
+			AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | Check "+c[i].Title+" status: "+status)
+		}
 	}
 
-	currentScore, _ := json.Marshal(c)
-	err = ioutil.WriteFile("/opt/site/wwwroot/js/current.json", currentScore, 0644)
+	currentStatus, _ := json.Marshal(c)
+	err = ioutil.WriteFile("/opt/site/wwwroot/js/current.json", currentStatus, 0644)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

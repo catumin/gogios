@@ -3,7 +3,7 @@ Description=Controls service check engine website
 After=network.target
 [Service]
 Type=simple
-User=root
+User=gogios
 ExecStart=dotnet run --project /opt/site
 [Install]
 WantedBy=multi-user.target

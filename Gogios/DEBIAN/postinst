@@ -6,4 +6,23 @@ if [ ! -f /etc/gingertechengine/checks.json ]; then
     mv /etc/gingertechengine/example.json /etc/gingertechengine/checks.json
 fi
 
+if [ systemctl is-enabled gogios.service ]; then
+    echo "Temporarily disabling gogios"
+    systemctl disable gogios.service
+    rm /etc/systemd/system/gogios.service
+    systemctl enable gogios.service
+fi
+
+if [ systemctl is-enabled gogios-web.service ]; then
+    echo "Temporarily disabling gogios-web"
+    systemctl disable gogios-web.service
+    rm /etc/systemd/system/gogios-web.service
+    systemctl enable gogios-web.service
+fi
+
+systemctl stop gogios-web
+systemctl stop gogios
+systemctl start gogios-web
+systemctl start gogios
+
 echo "Start gogios and gogios-web for the system to run."

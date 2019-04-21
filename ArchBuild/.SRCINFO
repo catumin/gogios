@@ -1,6 +1,6 @@
 pkgbase = gogios-bin
 	pkgdesc = Checks to see if required services are still running on important machines.
-	pkgver = 1.01
+	pkgver = 1.1
 	pkgrel = 3
 	url = https://angrysysadmins.tech
 	install = gogios-bin.install
@@ -14,7 +14,7 @@ pkgbase = gogios-bin
 	options = !strip
 	options = !emptydirs
 	source = gogios.deb
-	sha256sums = bb68599dd82ba408f553107f305ce0486fda35d1755c061111182a49e2fa8a08
+	sha256sums = 3dfbfe5c4185f1115c75df231d95f95469af36c24bd77e8e75acc07e9291c32e
 
 pkgname = gogios-bin
 

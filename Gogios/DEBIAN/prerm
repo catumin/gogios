@@ -5,3 +5,5 @@ systemctl stop service-check-web
 systemctl stop service-check
 systemctl disable service-check-web
 systemctl disable service-check
+
+userdel gogios

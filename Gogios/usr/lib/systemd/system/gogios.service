@@ -3,7 +3,7 @@ Description=Controls service check engine
 After=network.target
 [Service]
 Type=simple
-User=root
+User=gogios
 ExecStart=/usr/bin/servicecheck
 [Install]
 WantedBy=multi-user.target

@@ -8,5 +8,6 @@ namespace site.Models
         public string command { get; set; }
         public string expected { get; set; }
         public bool good { get; set; }
+        public string asof { get; set; }
     }
   }

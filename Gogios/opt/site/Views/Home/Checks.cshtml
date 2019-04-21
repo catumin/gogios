@@ -14,6 +14,7 @@
                 else if(json[i].good == false) {
                     tr.append("<td><font color='red'>" + json[i].good + "</font></td>");
                 }
+                tr.append("<td>" + json[i].asof + "</td>");
                 $('table').append(tr);
             }
         });
@@ -24,6 +25,7 @@
         <tr>
         <th>Check</th>
         <th>Status</th>
+        <th>As Of</th>
         </tr>
         </thead>
         <tbody></tbody>

@@ -1,32 +1,37 @@
 [
   {
-    "title": "Integrity of Scoring Engine",
+    "title": "Integrity of Checking Engine",
     "command": "echo working",
     "expected": "working",
-    "good": false
+    "good": false,
+    "asof": ""
   },
   {
     "title": "SSH",
     "command": "/var/lib/gingertechengine/check-ssh -host 123.123.123.123 -password scoringengine -user scoringengine",
     "expected": "Successful login",
-    "good": false
+    "good": false,
+    "asof": ""
   },
   {
     "title": "Web",
     "command": "curl 123.123.123.123",
     "expected": "DOCTYPE",
-    "good": false
+    "good": false,
+    "asof": ""
   },
   {
     "title": "DNS",
     "command": "/var/lib/gingertechengine/check-dns -domain angrysysadmins.tech -record A -server 123.123.123.123",
     "expected": "45.77.71.224",
-    "good": false
+    "good": false,
+    "asof": ""
   },
   {
     "title": "FTP",
     "command": "/var/lib/gingertechengine/check-dns -host 123.123.123.123",
     "expected": "45.77.71.224",
-    "good": false
+    "good": false,
+    "asof": ""
   }
 ]
