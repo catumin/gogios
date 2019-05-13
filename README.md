@@ -5,8 +5,8 @@ Simple system to check important services are on remote machines
 Download and install the latest release deb file and then start the service. For example:
 
 ```
-wget https://github.com/BKasin/Gogios/releases/download/v1.1/gogios-1.1.deb
-sudo dpkg -i gogios-1.1.deb
+wget https://github.com/BKasin/Gogios/releases/download/v1.3/gogios-1.3.deb
+sudo dpkg -i gogios-1.3.deb
 sudo systemctl start gogios
 ```
 

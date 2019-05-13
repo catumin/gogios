@@ -1,0 +1,7 @@
+[options]
+interval = 3
+verbose = false
+
+[telegram]
+api = ""
+chat = ""

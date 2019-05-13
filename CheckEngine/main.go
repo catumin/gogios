@@ -2,20 +2,32 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/BurntSushi/toml"
 )
 
-var (
-	interval = flag.Int("interval", 3, "Time between check rounds")
-	verbose  = flag.Bool("verbose", false, "Verbose output in log. Will log the full output of the check to file. Always true when ran inline")
-)
+type Config struct {
+	Options  options
+	Telegram telegram
+}
+
+type options struct {
+	Interval int
+	verbose  bool
+}
+
+type telegram struct {
+	API  string
+	Chat string
+}
 
 // Check - struct to format checks
 type Check struct {
@@ -27,13 +39,18 @@ type Check struct {
 }
 
 func main() {
-	flag.Parse()
+	var conf Config
+	if _, err := toml.DecodeFile("/etc/gingertechengine/gogios.toml", &conf); err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%#v\n", conf)
+
 	os.Setenv("PATH", "/bin:/usr/bin:/sbin:/usr/local/bin")
 
-	doEvery(time.Duration(*interval)*time.Minute, check)
+	doEvery(time.Duration(conf.Options.Interval)*time.Minute, check, conf)
 }
 
-func check(t time.Time) {
+func check(t time.Time, conf Config) {
 	raw, err := ioutil.ReadFile("/etc/gingertechengine/checks.json")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -54,11 +71,19 @@ func check(t time.Time) {
 			status = "Success"
 		} else if !strings.Contains(output, c[i].Expected) {
 			c[i].Good = false
+
+			if conf.Telegram.API != "" {
+				urlString := "https://api.telegram.org/bot" + conf.Telegram.API + "/sendMessage?chat_id=" + conf.Telegram.Chat + "&text=" + c[i].Title + " Status is Failed as of: " + c[i].Asof
+				resp, err := http.Get(urlString)
+				if err != nil {
+					AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | "+resp.Status)
+				}
+			}
 		}
 
 		fmt.Println("Check " + c[i].Title + " return: \n" + output)
 
-		if *verbose {
+		if conf.Options.verbose {
 			AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | Check "+c[i].Title+" status: "+status)
 			AppendStringToFile("/var/log/gingertechnology/service_check.log", "Output: \n"+output)
 		} else {
@@ -86,9 +111,9 @@ func getCommandOutput(command string, args []string) (output string) {
 }
 
 // doEvery - Run function f every d length of time
-func doEvery(d time.Duration, f func(time.Time)) {
+func doEvery(d time.Duration, f func(time.Time, Config), conf Config) {
 	for x := range time.Tick(d) {
-		f(x)
+		f(x, conf)
 	}
 }
 

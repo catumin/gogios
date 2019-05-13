@@ -3,7 +3,12 @@
 
 if [ ! -f /etc/gingertechengine/checks.json ]; then
     echo "Making default check file"
-    mv /etc/gingertechengine/example.json /etc/gingertechengine/checks.json
+    cp /etc/gingertechengine/example.json /etc/gingertechengine/checks.json
+fi
+
+if [ ! -f /etc/gingertechengine/gogios.toml ]; then
+    echo "Making default config"
+    cp /etc/gingertechengine/gogios.sample.toml /etc/gingertechengine/gogios.toml
 fi
 
 if id "gogios" >/dev/null 2>&1; then
@@ -17,23 +22,7 @@ chown gogios:gogios -R /var/lib/gingertechengine
 chown gogios:gogios -R /etc/gingertechengine
 chown gogios:gogios -R /opt/gingertechengine
 
-if systemctl is-enabled gogios.service; then
-    echo "Temporarily disabling gogios"
-    systemctl disable gogios.service
-    rm /etc/systemd/system/gogios.service
-    systemctl enable gogios.service
-fi
-
-if systemctl is-enabled gogios-web.service; then
-    echo "Disabling gogios-web"
-    systemctl disable gogios-web.service
-    systemctl stop gogios-web.service
-fi
-
-systemctl stop gogios-web
-systemctl stop gogios
-systemctl start gogios-web
-systemctl start gogios
+systemctl restart gogios
 
 echo "Start gogios for the system to run."
-echo "You will need to install and a webserver and have it point to /opt/gingertechengine"
+echo "You will need to install a webserver and have it point to /opt/gingertechengine"
