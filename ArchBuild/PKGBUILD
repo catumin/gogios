@@ -12,7 +12,7 @@ source=("gogios.deb")
 options=('!strip' '!emptydirs')
 install=${pkgname}.install
 noextract=("gogios.deb")
-sha256sums=('10073d43055a59d4f3f7efce75fe9de515f6a7f1a517663ceb3057656b5a95ab')
+sha256sums=('d79d4489f82a90713f93cf2ab421dfa1df557be17e71a6ebaa0e93fb9917e4d0')
 
 package() {
     bsdtar -O -xf gogios.deb data.tar.xz | bsdtar -C "${pkgdir}" -xJf -
