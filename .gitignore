@@ -28,6 +28,8 @@ Thumbs.db
 *.bak
 *.swp
 
+# My stuff
+bin/
 pkg
 src
 *.tar.xz

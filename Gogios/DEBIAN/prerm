@@ -1,7 +1,0 @@
-#!/bin/bash
-# Author: Bailey Kasin
-
-systemctl stop service-check
-systemctl disable service-check
-
-userdel gogios
