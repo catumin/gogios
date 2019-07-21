@@ -27,7 +27,9 @@ Once you have those, you can build the project with:
 make build
 ```
 
-Which will create a bin folder and put all the binaries in it. To install:
+Which will create a bin folder and put all the binaries in it. Do make debug to run golangci-lint before building.
+
+To install:
 
 ```bash
 make install

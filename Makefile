@@ -23,20 +23,40 @@ lint: golangci
 	for p in plugins/*; do golangci-lint run $$p; done
 
 install: build
-	useradd --system --no-create-home --shell /sbin/nologin gogios
+	useradd --system --no-create-home --user-group --shell /sbin/nologin gogios
 	$(INSTALL) -d -o gogios -g gogios -m 644 $(DESTDIR)/var/log/gingertechnology
 	$(INSTALL) -d -o gogios -g gogios -m 664 $(DESTDIR)/etc/gingertechengine
 	$(INSTALL) -d -o gogios -g gogios -m 774 $(DESTDIR)/usr/lib/gingertechengine/plugins
-	$(INSTALL) -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine
+	$(INSTALL) -d $(DESTDIR)/usr/bin
+	$(INSTALL) -d $(DESTDIR)/usr/lib/systemd/system
+	for d in $$(find web/ -type d); do $(INSTALL) -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f2-); done
 	$(INSTALL) -o gogios -g gogios -m 774 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
-	$(INSTALL) -o gogios -g gogios -m 764 web/* $(DESTDIR)/opt/gingertechengine
+	for f in $$(find web/ -type f); do $(INSTALL) -D -o gogios -g gogios --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f2-); done
 	$(INSTALL) -o gogios -g gogios -m 664 checkengine/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
-	$(INSTALL) -o root -g root -m 644 checkengine/gogios.service /usr/lib/systemd/system
-	$(INSTALL) -o root -g root -m 755 bin/gogios-$(VERSION)-$(GOOS) $(DESTDIR)/usr/bin
+	$(INSTALL) -o root -g root -m 644 checkengine/gogios.service $(DESTDIR)/usr/lib/systemd/system
+	$(INSTALL) -o root -g root -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 
-build: lint
+package: build
+	$(INSTALL) -d $(DESTDIR)/var/log/gingertechnology
+	$(INSTALL) -d $(DESTDIR)/etc/gingertechengine
+	$(INSTALL) -d $(DESTDIR)/usr/lib/gingertechengine/plugins
+	$(INSTALL) -d $(DESTDIR)/usr/bin
+	$(INSTALL) -d $(DESTDIR)/usr/lib/systemd/system
+	for d in $$(find web/ -type d); do $(INSTALL) -d $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f2-); done
+	$(INSTALL) -m 774 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
+	for f in $$(find web/ -type f); do $(INSTALL) --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f2-); done
+	$(INSTALL) -m 664 checkengine/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
+	$(INSTALL) -m 644 checkengine/gogios.service $(DESTDIR)/usr/lib/systemd/system
+	$(INSTALL) -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
+
+debug: lint
+	mkdir -p debug/bin/plugins
+	GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o debug/bin/gogios-$(VERSION)-$(PLATFORM)
+	for p in ./plugins/*; do GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o debug/bin/$$p ./$$p; done
+
+build:
 	mkdir -p bin/plugins
-	GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o bin/gogios-$(VERSION)-$(GOOS)
-	for p in ./plugins/*; do GOOS=$(os) GOARCH=amd64 go build -o bin/$$p ./$$p; done
+	GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o bin/gogios-$(VERSION)-$(PLATFORM)
+	for p in ./plugins/*; do GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o bin/$$p ./$$p; done
 
-.PHONY: test lint build install
+.PHONY: test lint build debug install package
