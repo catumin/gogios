@@ -1,19 +1,23 @@
-
-SHELL := /bin/bash
-PLATFORM := $(shell go env GOOS)
-ARCH := $(shell go env GOARCH)
-GOPATH := $(shell go env GOPATH)
-GOBIN := $(GOPATH)/bin
-PKG := $(shell go list ./ | grep -v /vendor)
-PLUGINS := $(shell for plugin in plugins/*; do go list ./$$plugin/; done)
+export G111MODULE=on
+PLATFORM := $(shell uname | tr [:upper:] [:lower:])
+ARCH := $(shell uname -m)
+PKGS := $(shell go list ./... | grep -v /vendor)
+GOCC := $(shell go version)
 VERSION := 1.0
 INSTALL := /usr/bin/install
+
+LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.version=${VERSION}'
+MOD := -mod=vendor
+ifneq (,$(findstring gccgo,$(GOCC)))
+	export GOPATH=$(shell pwd)/.go
+	LDFLAGS := -gccgoflags '-s -w'
+	MOD :=
+endif
 
 all: build test
 
 test: build	
-	go test $(PKG)
-	go test $(PLUGINS)
+	go test $(PKGS)
 
 golangci:
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
@@ -51,12 +55,12 @@ package: build
 
 debug: lint
 	mkdir -p debug/bin/plugins
-	GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o debug/bin/gogios-$(VERSION)-$(PLATFORM)
-	for p in ./plugins/*; do GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o debug/bin/$$p ./$$p; done
+	go build -v ${LDFLAGS} -o debug/bin/gogios-$(VERSION)-$(PLATFORM) ${MOD}
+	for p in ./plugins/*; do go build -o debug/bin/$$p ./$$p; done
 
 build:
 	mkdir -p bin/plugins
-	GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o bin/gogios-$(VERSION)-$(PLATFORM)
-	for p in ./plugins/*; do GOOS=$(PLATFORM) GOARCH=$(ARCH) go build -o bin/$$p ./$$p; done
+	go build -v ${LDFLAGS} -o bin/gogios-$(VERSION)-$(PLATFORM) ${MOD}
+	for p in ./plugins/*; do go build -o bin/$$p ./$$p; done
 
 .PHONY: test lint build debug install package

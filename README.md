@@ -12,11 +12,17 @@ Because of this, I'm rebuilding this repo to be more OBS compliant and a bit mor
 
 ### New Method of Building
 
-I use go-dep to track project dependencies. They should all be included in the vendor/ folder, but if not
+I use go modules to track project dependencies. They should all be included in the vendor/ folder, but if not
 you can use:
 
 ```bash
-dep ensure
+go mod download
+```
+
+or
+
+```bash
+go mod vendor
 ```
 
 to collect them all (in theory, go get -d ./... will do the same thing).
