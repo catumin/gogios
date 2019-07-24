@@ -47,7 +47,7 @@ func main() {
 	}
 	fmt.Printf("%#v\n", conf)
 
-	os.Setenv("PATH", "/bin:/usr/bin:/sbin:/usr/local/bin")
+	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
 
 	doEvery(time.Duration(conf.Options.Interval)*time.Minute, check, conf)
 }
@@ -81,7 +81,7 @@ func check(t time.Time, conf Config) {
 			c[i].Good = false
 
 			if conf.Telegram.API != "" {
-				urlString := "https://api.telegram.org/bot" + conf.Telegram.API + "/sendMessage?chat_id=" + conf.Telegram.Chat + "&text=" + c[i].Title + " Status is Failed as of: " + c[i].Asof
+				urlString := "https://api.telegram.org/bot" + conf.Telegram.API + "/sendMessage?chat_id=" + conf.Telegram.Chat + "&text=" + c[i].Title + "\nStatus is Failed as of: " + c[i].Asof + "\nCommand output was:\n" + output
 				resp, err := http.Get(urlString)
 				if err != nil {
 					err = AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | "+resp.Status)
