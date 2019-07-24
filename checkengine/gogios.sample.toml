@@ -4,4 +4,4 @@ verbose = false # Verbose logging. true or false
 
 [telegram]
 api = "" # Telegram bot API key
-chat = "" # Chat to post to, usually a negative number
+chat = "" # Chat to post to, usually a negative number for groups and a positive one for direct

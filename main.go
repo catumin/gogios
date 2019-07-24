@@ -22,7 +22,7 @@ type Config struct {
 
 type options struct {
 	Interval int
-	verbose  bool
+	Verbose  bool
 }
 
 type telegram struct {
@@ -83,7 +83,7 @@ func check(t time.Time, conf Config) {
 			c[i].Good = false
 
 			if conf.Telegram.API != "" {
-				urlString := "https://api.telegram.org/bot" + conf.Telegram.API + "/sendMessage?chat_id=" + conf.Telegram.Chat + "&text=" + c[i].Title + "\nStatus is Failed as of: " + c[i].Asof + "\nCommand output was:\n" + output
+				urlString := "https://api.telegram.org/bot" + conf.Telegram.API + "/sendMessage?chat_id=" + conf.Telegram.Chat + "&text=" + c[i].Title + " Status is Failed as of: " + c[i].Asof
 				resp, err := http.Get(urlString)
 				if err != nil {
 					err = AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" Telegram post failed | "+resp.Status)
@@ -97,7 +97,7 @@ func check(t time.Time, conf Config) {
 
 		fmt.Println("Check " + c[i].Title + " return: \n" + output)
 
-		if conf.Options.verbose {
+		if conf.Options.Verbose {
 			err = AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | Check "+c[i].Title+" status: "+status)
 			if err != nil {
 				fmt.Println("Log could not be written. God save you, error return:")
