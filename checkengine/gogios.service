@@ -4,6 +4,6 @@ After=network.target
 [Service]
 Type=simple
 User=gogios
-ExecStart=/usr/bin/servicecheck
+ExecStart=/usr/bin/gogios
 [Install]
 WantedBy=multi-user.target

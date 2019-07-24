@@ -49,6 +49,8 @@ func main() {
 
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
 
+	check(time.Now(), conf)
+
 	doEvery(time.Duration(conf.Options.Interval)*time.Minute, check, conf)
 }
 
@@ -84,7 +86,7 @@ func check(t time.Time, conf Config) {
 				urlString := "https://api.telegram.org/bot" + conf.Telegram.API + "/sendMessage?chat_id=" + conf.Telegram.Chat + "&text=" + c[i].Title + "\nStatus is Failed as of: " + c[i].Asof + "\nCommand output was:\n" + output
 				resp, err := http.Get(urlString)
 				if err != nil {
-					err = AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" | "+resp.Status)
+					err = AppendStringToFile("/var/log/gingertechnology/service_check.log", c[i].Asof+" Telegram post failed | "+resp.Status)
 					if err != nil {
 						fmt.Println("Log could not be written. God save you, error return:")
 						fmt.Println(err.Error())
@@ -129,6 +131,7 @@ func getCommandOutput(command string, args []string) (output string) {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("cmd.Run() failed with %s\n", err)
+		return
 	}
 	sha := string(out)
 
