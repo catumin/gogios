@@ -3,8 +3,8 @@ PLATFORM := $(shell uname | tr [:upper:] [:lower:])
 ARCH := $(shell uname -m)
 PKGS := $(shell go list ./... | grep -v /vendor)
 GOCC := $(shell go version)
-VERSION := 1.0.1
-INSTALL := /usr/bin/install
+VERSION := 1.0.2
+INSTALL := $(shell which install)
 
 LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.version=${VERSION}'
 MOD := -mod=vendor
@@ -14,15 +14,12 @@ ifneq (,$(findstring gccgo,$(GOCC)))
 	MOD :=
 endif
 
-all: build test
+all: lint build test
 
 test: build	
 	go test $(PKGS)
 
-golangci:
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-
-lint: golangci
+lint:
 	golangci-lint run ./
 	for p in plugins/*; do golangci-lint run $$p; done
 

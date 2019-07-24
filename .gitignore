@@ -31,7 +31,5 @@ Thumbs.db
 # My stuff
 bin/
 debug/
-pkg
-src
 *.tar.xz
 *.deb

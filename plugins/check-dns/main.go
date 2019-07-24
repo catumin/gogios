@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -16,13 +17,13 @@ var (
 	port   = flag.Int("port", 53, "Port to use")
 )
 
-// DNSLookup - Check *record from *domain using *server to lookup
-func DNSLookup(recordType uint16) {
+// DNSLookup - Check record from domain using server to lookup
+func DNSLookup(recordType uint16, domain string, server string) (dns.RR, error) {
 	c := dns.Client{}
 	m := dns.Msg{}
 
-	m.SetQuestion(*domain+".", recordType)
-	r, t, err := c.Exchange(&m, *server+":"+strconv.Itoa(*port))
+	m.SetQuestion(domain+".", recordType)
+	r, t, err := c.Exchange(&m, server+":"+strconv.Itoa(*port))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,30 +38,38 @@ func DNSLookup(recordType uint16) {
 		for _, ans := range r.Answer {
 			recordAnswer := ans.(*dns.A)
 			fmt.Printf("%s\n", recordAnswer.A)
+			return ans, nil
 		}
 	case "AAAA":
 		for _, ans := range r.Answer {
 			recordAnswer := ans.(*dns.AAAA)
 			fmt.Printf("%s\n", recordAnswer.AAAA)
+			return ans, nil
 		}
 	case "NS":
 		for _, ans := range r.Answer {
 			recordAnswer := ans.(*dns.NS)
 			fmt.Printf("%s\n", recordAnswer.Ns)
+			return ans, nil
 		}
 	case "MX":
 		for _, ans := range r.Answer {
 			recordAnswer := ans.(*dns.MX)
 			fmt.Printf("%s\n", recordAnswer.Mx)
+			return ans, nil
 		}
 	case "TXT":
 		for _, ans := range r.Answer {
 			recordAnswer := ans.(*dns.TXT)
 			fmt.Printf("%s\n", recordAnswer.Txt)
+			return ans, nil
 		}
 	default:
 		log.Fatalln("Please enter a supported record type.")
+		return nil, errors.New("Record type not supported")
 	}
+
+	return nil, errors.New("Received invalid resposne")
 }
 
 func main() {
@@ -68,15 +77,15 @@ func main() {
 
 	switch record := *record; record {
 	case "A":
-		DNSLookup(dns.TypeA)
+		DNSLookup(dns.TypeA, *domain, *server)
 	case "AAAA":
-		DNSLookup(dns.TypeAAAA)
+		DNSLookup(dns.TypeAAAA, *domain, *server)
 	case "NS":
-		DNSLookup(dns.TypeNS)
+		DNSLookup(dns.TypeNS, *domain, *server)
 	case "MX":
-		DNSLookup(dns.TypeMX)
+		DNSLookup(dns.TypeMX, *domain, *server)
 	case "TXT":
-		DNSLookup(dns.TypeTXT)
+		DNSLookup(dns.TypeTXT, *domain, *server)
 	default:
 		log.Fatalln("Please enter a supported record type.")
 	}
