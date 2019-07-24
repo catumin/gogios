@@ -1,7 +1,11 @@
 [options]
-interval = 3 # How often to run checks in minutes
-verbose = false # Verbose logging. true or false
+# How often to run checks in minutes
+interval = 3
+# Verbose logging. true or false
+verbose = false
 
 [telegram]
-api = "" # Telegram bot API key
-chat = "" # Chat to post to, usually a negative number
+# Telegram bot API key
+api = ""
+# Chat to post to, usually a negative number for groups and a positive one for direct
+chat = ""
