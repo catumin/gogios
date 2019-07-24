@@ -37,7 +37,6 @@ install: build
 	$(INSTALL) -o root -g root -m 644 checkengine/gogios.service $(DESTDIR)/usr/lib/systemd/system
 	$(INSTALL) -o root -g root -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 	touch $(DESTDIR)/var/log/gingertechnology/service_check.log
-	chown gogios:gogios $(DESTDIR)/var/log/gingertechnology/service_check.log
 
 
 package: build
@@ -54,14 +53,9 @@ package: build
 	$(INSTALL) -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 	touch $(DESTDIR)/var/log/gingertechnology/service_check.log
 
-debug: lint
-	mkdir -p debug/bin/plugins
-	go build -v ${LDFLAGS} -o debug/bin/gogios-$(VERSION)-$(PLATFORM) ${MOD}
-	for p in ./plugins/*; do go build -o debug/bin/$$p ./$$p; done
-
 build:
 	mkdir -p bin/plugins
 	go build -v ${LDFLAGS} -o bin/gogios-$(VERSION)-$(PLATFORM) ${MOD}
 	for p in ./plugins/*; do go build -o bin/$$p ./$$p; done
 
-.PHONY: test lint build debug install package
+.PHONY: test lint build install package

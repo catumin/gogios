@@ -30,10 +30,14 @@ to collect them all (in theory, go get -d ./... will do the same thing).
 Once you have those, you can build the project with:
 
 ```bash
-make build
+make
 ```
 
-Which will create a bin folder and put all the binaries in it. Do make debug to run golangci-lint before building.
+For linting, you have to install golangci-lint. This can be done with:
+
+```bash
+go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+```
 
 To install:
 

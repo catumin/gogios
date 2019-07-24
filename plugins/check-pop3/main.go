@@ -31,6 +31,9 @@ type resp struct {
 func POP3Dialer() *resp {
 	exitcode := &resp{}
 	pop, err := pop3.Dial(*host+":"+strconv.Itoa(*port), pop3.UseTimeout(*timer))
+	if err != nil {
+		fmt.Println("pop3 Dial failed with error: ", err)
+	}
 
 	if err = pop.Auth(*user, *password); err == nil {
 		end := time.Now()
