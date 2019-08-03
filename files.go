@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -45,4 +47,27 @@ func Copy(src, dst string) error {
 	defer destination.Close()
 	_, err = io.Copy(destination, source)
 	return err
+}
+
+// CreateFile makes a blank file at the specified path
+func CreateFile(dst string) error {
+	emptyFile, err := os.Create(dst)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(emptyFile)
+	emptyFile.Close()
+
+	return err
+}
+
+// ReadFile returns the cotents of a file as a string
+func ReadFile(src string) (string, error) {
+	content, err := ioutil.ReadFile(src)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(content), err
 }

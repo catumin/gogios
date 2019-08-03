@@ -2,30 +2,29 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"testing"
 )
 
+func TestCreateFile(t *testing.T) {
+	err := CreateFile("./testa")
+	if err != nil {
+		t.Errorf("File creation fialed, got error: %s", err)
+	}
+}
+
 func TestAppendStringToFile(t *testing.T) {
-	emptyFile, err := os.Create("./testa")
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(emptyFile)
-	emptyFile.Close()
-
-	err = AppendStringToFile("./testa", "String")
+	err := AppendStringToFile("./testa", "String")
 	if err != nil {
 		t.Errorf("String writing failed, got error: %s", err)
 	}
 
-	content, err := ioutil.ReadFile("./testa")
+	content, err := ReadFile("./testa")
 	if err != nil {
 		t.Errorf("String writing failed, got error: %s", err)
 	}
 
-	if string(content) != "\nString" {
+	if content != "\nString" {
 		t.Errorf("String writing failed, got: %s, want: %s.", content, "String")
 	}
 }

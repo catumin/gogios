@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +37,7 @@ type Check struct {
 	Expected string `json:"expected"`
 	Good     bool   `json:"good"`
 	Asof     string `json:"asof"`
+	Output   string `json:"output"`
 }
 
 func main() {
@@ -117,6 +119,9 @@ func check(t time.Time, conf Config) {
 				}
 			}
 		}
+
+		bytes := []byte("")
+		curr[i].Output = string(strconv.AppendQuoteToASCII(bytes, output))
 
 		fmt.Println("Check " + curr[i].Title + " return: \n" + output)
 
