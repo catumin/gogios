@@ -3,7 +3,11 @@ PLATFORM := $(shell uname | tr [:upper:] [:lower:])
 ARCH := $(shell uname -m)
 PKGS := $(shell go list ./... | grep -v /vendor)
 GOCC := $(shell go version)
+<<<<<<< HEAD
 VERSION := 1.1
+=======
+VERSION := 1.0.2
+>>>>>>> 8793a4bef956bdb565edc4090516820e6b254dee
 INSTALL := $(shell which install)
 
 LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.version=${VERSION}'
