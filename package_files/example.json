@@ -33,5 +33,26 @@
     "expected": "Successful connection",
     "good": false,
     "asof": ""
+  },
+  {
+    "title": "Host Alive",
+    "command": "/usr/lib/gingertechengine/plugins/check-host-alive -host 123.123.123.123",
+    "expected": "Successful connection",
+    "good": false,
+    "asof": ""
+  },
+  {
+    "title": "MySQL",
+    "command": "/usr/lib/gingertechengine/plugins/check-mysql -host 123.123.123.123 -user username -password password123 -database dbname",
+    "expected": "Successful connection",
+    "good": false,
+    "asof": ""
+  },
+  {
+    "title": "TCP Port",
+    "command": "/usr/lib/gingertechengine/plugins/check-tcp-port 123.123.123.123 80",
+    "expected": "Success",
+    "good": false,
+    "asof": ""
   }
 ]
