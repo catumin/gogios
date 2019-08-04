@@ -62,7 +62,7 @@ func main() {
 			}
 		}()
 
-		fmt.Println("Attempt: ", attempt)
+		fmt.Println("Attempts left: ", attempt)
 		time.Sleep(*timer)
 	}
 }

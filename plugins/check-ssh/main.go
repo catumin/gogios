@@ -100,7 +100,7 @@ func main() {
 				}
 			}()
 
-			fmt.Println("Attempt: ", attempt)
+			fmt.Println("Attempts left: ", attempt)
 			time.Sleep(*timer)
 		}
 	case "uauthkey":
@@ -114,7 +114,7 @@ func main() {
 				}
 			}()
 
-			fmt.Println("Attempt: ", attempt)
+			fmt.Println("Attempts left: ", attempt)
 			time.Sleep(*timer)
 		}
 	case "eauthkey":
@@ -128,7 +128,7 @@ func main() {
 				}
 			}()
 
-			fmt.Println("Attempt: ", attempt)
+			fmt.Println("Attempts left: ", attempt)
 			time.Sleep(*timer)
 		}
 	default:
