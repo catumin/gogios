@@ -51,6 +51,10 @@ func main() {
 	log.Printf("Starting %s\n", time.Now())
 	_, err := SendPing(*host, *threshold, *attempts)
 	if err != nil {
+		fmt.Println("If you receive a privilege error, try either allowing unprivileged UDP ping with:")
+		fmt.Println(`sudo sysctl -w net.ipv4.ping_group_range="0   2147483647"	`)
+		fmt.Println("Or by allowing just this binary to bind to raw sockets with:")
+		fmt.Println(`setcap cap_net_raw=+ep /usr/lib/gingertechengine/plugins/check-host-alive`)
 		panic(err)
 	}
 }

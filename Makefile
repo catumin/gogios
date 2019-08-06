@@ -41,7 +41,7 @@ install: build
 	install -d $(DESTDIR)/usr/lib/systemd/system
 	for d in $$(find web/ -type d); do install -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f2-); done
 	for f in $$(find web/ -type f); do install -D -o gogios -g gogios --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f2-); done
-	for f in ${PLUGINS}; do cp "$$f"/* bin/plugins; done
+	install -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine/js/output
 	install -o gogios -g gogios -T -m 764 package_files/example.json $(DESTDIR)/opt/gingertechengine/js/current.json
 	install -o gogios -g gogios -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -o gogios -g gogios -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
@@ -58,7 +58,8 @@ package: build
 	install -d $(DESTDIR)/usr/lib/systemd/system
 	for d in $$(find web/ -type d); do install -d $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f2-); done
 	for f in $$(find web/ -type f); do install --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f2-); done
-	for f in ${PLUGINS}; do cp "$$f"/* bin/plugins; done
+	install -d $(DESTDIR)/opt/gingertechengine/js/output
+	touch $(DESTDIR)/opt/gingertechengine/js/output/.keep
 	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
 	install -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
@@ -69,3 +70,4 @@ build:
 	mkdir -p bin/plugins
 	go build -v ${LDFLAGS} -o bin/gogios-$(VERSION)-$(PLATFORM) ${MOD}
 	for p in ${GOPLUGINS}; do go build -o bin/$$p ./$$p; done
+	for f in ${PLUGINS}; do cp "$$f"/* bin/plugins; done
