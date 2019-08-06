@@ -70,7 +70,7 @@ func sshPassword(password string) *resp {
 
 	_, err := ssh.Dial("tcp", *host+":"+strconv.Itoa(*port), config)
 	if err != nil {
-		fmt.Printf("\nFailed connection")
+		fmt.Println("\nFailed connection")
 	} else {
 		end := time.Now()
 		d := end.Sub(inittime)

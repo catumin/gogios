@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -37,7 +36,6 @@ type Check struct {
 	Expected string `json:"expected"`
 	Good     bool   `json:"good"`
 	Asof     string `json:"asof"`
-	Output   string `json:"output"`
 }
 
 func main() {
@@ -51,6 +49,10 @@ func main() {
 
 	// Set the PATH that will be used by checks
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
+
+	if _, err := os.Stat("/var/log/gingertechnology/service_check.log"); os.IsNotExist(err) {
+		CreateFile("/var/log/gingertechnology/service_check.log")
+	}
 
 	// Do a round of a checks immediately...
 	check(time.Now(), conf)
@@ -120,8 +122,7 @@ func check(t time.Time, conf Config) {
 			}
 		}
 
-		bytes := []byte("")
-		curr[i].Output = string(strconv.AppendQuoteToASCII(bytes, output))
+		WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
 
 		fmt.Println("Check " + curr[i].Title + " return: \n" + output)
 

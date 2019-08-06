@@ -15,8 +15,8 @@
   },
   {
     "title": "Web",
-    "command": "curl 123.123.123.123",
-    "expected": "DOCTYPE",
+    "command": "curl -I https://angrysysadmins.tech",
+    "expected": "200 OK",
     "good": false,
     "asof": ""
   },

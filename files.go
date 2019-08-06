@@ -23,6 +23,20 @@ func AppendStringToFile(path, text string) error {
 	return nil
 }
 
+// WriteStringToFile - Replace contents of the file
+func WriteStringToFile(path, text string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		CreateFile(path)
+	}
+
+	err := ioutil.WriteFile(path, []byte(text), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Copy makes a replica of a file in a new location
 func Copy(src, dst string) error {
 	sourceFileStat, err := os.Stat(src)

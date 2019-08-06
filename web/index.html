@@ -39,31 +39,35 @@
       roughly every three minutes.
     </p>
 
+    <p>
+      Click on the name of a check to see its most recent output. Be warned that output from curl can get weird. To
+      avoid that, you can use the "-I" flad, and set the expected result to "200 OK".
+    </p>
+
     <div style="margin-top:20px">
       <script src="/lib/jquery/dist/jquery.js"></script>
       <script src="js/table.js"></script>
-    <table class="table table-bordered table-condensed table-hover table-striped">
-            <thead>
-            <tr>
+      <table class="table table-bordered table-condensed table-hover table-striped">
+        <thead>
+          <tr>
             <th>Check</th>
             <th>Status</th>
             <th>As Of</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-    </table>
-    
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
     </div>
 
     <br />
-        <hr />
+    <hr />
 
-        <h2 id="CheckName">Select a check and the output will be displayed here</h2>
-        <p id="CheckOutput"></p>
-
-        <hr />
+    <h2 id="CheckName">Check Output</h2>
+    <p id="CheckOutput"></p>
 
     <hr />
+
     <footer>
       <p>&copy; 2018-2019 - Ginger Technology || Bailey Kasin</p>
     </footer>
