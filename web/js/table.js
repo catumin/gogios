@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 function replaceText(title) {
   document.getElementById('CheckName').textContent = title;
   var rawFile = new XMLHttpRequest();
@@ -11,6 +12,12 @@ function replaceText(title) {
     }
   }
   rawFile.send(null);
+=======
+function replaceText(title, output) {
+  document.getElementById('CheckName').textContent = title;
+
+  document.getElementById('CheckOutput').innerHTML = "<pre>" + output + "</pre>";
+>>>>>>> d7aa2ba22c5b0ac9b8713bade907a4a6114c68fa
 }
 
 $(document).ready(function () {
@@ -20,7 +27,11 @@ $(document).ready(function () {
       // Append each row to html table
       for (var i = 0; i < json.length; i++) {
         tr = $('<tr/>');
+<<<<<<< HEAD
         tr.append("<td><a href='#' onClick='replaceText(\"" + json[i].title + "\");'>" + json[i].title + "</a></td>");
+=======
+        tr.append("<td><a href='#' onClick='replaceText(\"" + json[i].title + "\"," + json[i].output + ");'>" + json[i].title + "</a></td>");
+>>>>>>> d7aa2ba22c5b0ac9b8713bade907a4a6114c68fa
         if (json[i].good == true) {
           tr.append("<td><font color='green'>Success</font></td>");
         }

@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +37,7 @@ type Check struct {
 	Expected string `json:"expected"`
 	Good     bool   `json:"good"`
 	Asof     string `json:"asof"`
+	Output   string `json:"output"`
 }
 
 func main() {
@@ -122,7 +124,12 @@ func check(t time.Time, conf Config) {
 			}
 		}
 
+<<<<<<< HEAD
 		WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
+=======
+		bytes := []byte("")
+		curr[i].Output = string(strconv.AppendQuoteToASCII(bytes, output))
+>>>>>>> d7aa2ba22c5b0ac9b8713bade907a4a6114c68fa
 
 		fmt.Println("Check " + curr[i].Title + " return: \n" + output)
 
