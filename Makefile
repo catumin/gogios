@@ -2,7 +2,7 @@
 
 DESTDIR :=
 
-VERSION := 1.2
+VERSION := 1.3
 LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.version=${VERSION}'
 MOD := -mod=vendor
 export G111MODULE=on

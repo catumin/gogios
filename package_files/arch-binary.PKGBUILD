@@ -1,7 +1,7 @@
 # Maintainer: Bailey Kasin <bailey@gingertechnology.net> (https://angrysysadmins.tech)
 
 pkgname=gogios-bin
-pkgver=1.2.1
+pkgver=1.3
 pkgrel=1
 pkgdesc="Checks to see if required services are still running on important machines."
 arch=('x86_64')
