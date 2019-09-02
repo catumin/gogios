@@ -1,11 +1,40 @@
+# Options for Gogios
+# https://github.com/bkasin/gogios
+# https://angrysysadmins.tech
 [options]
 # How often to run checks in minutes
 interval = 3
 # Verbose logging. true or false
 verbose = false
 
+[webOptions]
+HTTPPort = 8411
+HTTPSPort = 8412
+# Should the website be hosted on HTTPS
+SSL = false
+# Redirect from HTTP to HTTPS
+redirect = false
+# Path to TLS cert and key for HTTPS
+TLSCert = ""
+TLSKey = ""
+
+# Telegram is an open source, secure chatting application
+# https://telegram.org/
+# https://github.com/telegramdesktop
 [telegram]
 # Telegram bot API key
 api = ""
 # Chat to post to, usually a negative number for groups and a positive one for direct
 chat = ""
+
+# Twilio is a service that allows for sending SMS messages
+# https://www.twilio.com
+[twilio]
+# Account SID
+sid = ""
+# Account auth token
+token = ""
+# Phone number for your Twilio account
+twilioNumber = ""
+# Phone number that should be texted with the notification
+sendTo = ""

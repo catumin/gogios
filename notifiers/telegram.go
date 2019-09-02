@@ -1,14 +1,16 @@
-package main
+package notifiers
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+
+	"github.com/bkasin/gogios/helpers"
 )
 
-// PostMessage uses a Telegram bot to post a notification that a check has failed to a Telegram channel
-func PostMessage(bot, channel, check, time, output string, status bool) error {
+// TelegramMessage uses a Telegram bot to post a notification that a check has changed states to a Telegram channel
+func TelegramMessage(bot, channel, check, time, output string, status bool) error {
 	message := ""
 	tailedOutput := output
 
@@ -27,7 +29,7 @@ func PostMessage(bot, channel, check, time, output string, status bool) error {
 	resp, err := http.Get(urlString)
 	if err != nil {
 		fmt.Println("Error posting Telegram message, error: ", err)
-		logger := AppendStringToFile("/var/log/gingertechnology/service_check.log", time+" Telegram post failed | "+resp.Status)
+		logger := helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", time+" Telegram post failed | "+resp.Status)
 		if logger != nil {
 			fmt.Println("Log could not be written. God save you, error return:")
 			fmt.Println(logger.Error())

@@ -10,24 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	"github.com/bkasin/gogios/helpers"
+	"github.com/bkasin/gogios/notifiers"
+	"github.com/bkasin/gogios/web"
 )
-
-// Config - struct to hold the values read from the config file
-type Config struct {
-	Options  options
-	Telegram telegram
-}
-
-type options struct {
-	Interval int
-	Verbose  bool
-}
-
-type telegram struct {
-	API  string
-	Chat string
-}
 
 // Check - struct to format checks
 type Check struct {
@@ -41,27 +27,24 @@ type Check struct {
 
 func main() {
 	// Read and print the config file
-	var conf Config
-	if _, err := toml.DecodeFile("/etc/gingertechengine/gogios.toml", &conf); err != nil {
-		fmt.Println("Config file could not be decoded, error return:")
-		fmt.Println(err)
-	}
-	fmt.Printf("%#v\n", conf)
+	conf := helpers.GetConfig()
+
+	web.ServePage(conf)
 
 	// Set the PATH that will be used by checks
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
 
 	if _, err := os.Stat("/var/log/gingertechnology/service_check.log"); os.IsNotExist(err) {
-		CreateFile("/var/log/gingertechnology/service_check.log")
+		helpers.CreateFile("/var/log/gingertechnology/service_check.log")
 	}
 
-	// Do a round of a checks immediately...
+	// Do a round of checks immediately...
 	check(time.Now(), conf)
 	// ... and then every *interval
 	doEvery(time.Duration(conf.Options.Interval)*time.Minute, check, conf)
 }
 
-func check(t time.Time, conf Config) {
+func check(t time.Time, conf helpers.Config) {
 	// Read the raw check list into memory
 	raw, err := ioutil.ReadFile("/etc/gingertechengine/checks.json")
 	if err != nil {
@@ -80,7 +63,7 @@ func check(t time.Time, conf Config) {
 	}
 
 	// Copy the check values from the previous round of checks to a different file...
-	err = Copy("/opt/gingertechengine/js/current.json", "/opt/gingertechengine/js/prev.json")
+	err = helpers.Copy("/opt/gingertechengine/js/current.json", "/opt/gingertechengine/js/prev.json")
 	if err != nil {
 		fmt.Println("Could not create copy of current check states, error return:")
 		fmt.Println(err.Error())
@@ -116,30 +99,30 @@ func check(t time.Time, conf Config) {
 
 		if len(prev) > i && curr[i].Good != prev[i].Good {
 			if conf.Telegram.API != "" {
-				err = PostMessage(conf.Telegram.API, conf.Telegram.Chat, curr[i].Title, curr[i].Asof, output, curr[i].Good)
+				err = notifiers.TelegramMessage(conf.Telegram.API, conf.Telegram.Chat, curr[i].Title, curr[i].Asof, output, curr[i].Good)
 				if err != nil {
 					fmt.Println(err.Error())
 				}
 			}
 		}
 
-		WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
+		helpers.WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
 
 		fmt.Println("Check " + curr[i].Title + " return: \n" + output)
 
 		if conf.Options.Verbose {
-			err = AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
 			if err != nil {
 				fmt.Println("Log could not be written. God save you, error return:")
 				fmt.Println(err.Error())
 			}
-			err = AppendStringToFile("/var/log/gingertechnology/service_check.log", "Output: \n"+output)
+			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", "Output: \n"+output)
 			if err != nil {
 				fmt.Println("Log could not be written. God save you, error return:")
 				fmt.Println(err.Error())
 			}
 		} else {
-			err = AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
 			if err != nil {
 				fmt.Println("Log could not be written. God save you, error return:")
 				fmt.Println(err.Error())
@@ -169,7 +152,7 @@ func getCommandOutput(command string, args []string) (output string) {
 }
 
 // doEvery - Run function f every d length of time
-func doEvery(d time.Duration, f func(time.Time, Config), conf Config) {
+func doEvery(d time.Duration, f func(time.Time, helpers.Config), conf helpers.Config) {
 	for x := range time.Tick(d) {
 		f(x, conf)
 	}
