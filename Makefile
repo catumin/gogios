@@ -39,8 +39,8 @@ install: build
 	install -d -o gogios -g gogios -m 775 $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -d $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/usr/lib/systemd/system
-	for d in $$(find web/views/ -type d); do install -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f2-); done
-	for f in $$(find web/views/ -type f); do install -D -o gogios -g gogios --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f2-); done
+	for d in $$(find web/views/ -type d); do install -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f3-); done
+	for f in $$(find web/views/ -type f); do install -D -o gogios -g gogios --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f3-); done
 	install -d -o gogios -g gogios -m 764 $(DESTDIR)/opt/gingertechengine/js/output
 	install -o gogios -g gogios -T -m 764 package_files/example.json $(DESTDIR)/opt/gingertechengine/js/current.json
 	install -o gogios -g gogios -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
@@ -56,8 +56,8 @@ package: build
 	install -d $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -d $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/usr/lib/systemd/system
-	for d in $$(find web/views/ -type d); do install -d $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f2-); done
-	for f in $$(find web/views/ -type f); do install --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f2-); done
+	for d in $$(find web/views/ -type d); do install -d $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f3-); done
+	for f in $$(find web/views/ -type f); do install --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f3-); done
 	install -d $(DESTDIR)/opt/gingertechengine/js/output
 	touch $(DESTDIR)/opt/gingertechengine/js/output/.keep
 	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins

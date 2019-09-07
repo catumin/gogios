@@ -29,18 +29,20 @@ func main() {
 	// Read and print the config file
 	conf := helpers.GetConfig()
 
+	// Start serving the website
 	web.ServePage(conf)
 
 	// Set the PATH that will be used by checks
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
 
+	// Check if the log file exists, and create it if it doesn't
 	if _, err := os.Stat("/var/log/gingertechnology/service_check.log"); os.IsNotExist(err) {
 		helpers.CreateFile("/var/log/gingertechnology/service_check.log")
 	}
 
 	// Do a round of checks immediately...
 	check(time.Now(), conf)
-	// ... and then every *interval
+	// ... and then every $interval
 	doEvery(time.Duration(conf.Options.Interval)*time.Minute, check, conf)
 }
 
@@ -97,9 +99,17 @@ func check(t time.Time, conf helpers.Config) {
 			curr[i].Good = false
 		}
 
+		// Send out notifications if requested
 		if len(prev) > i && curr[i].Good != prev[i].Good {
 			if conf.Telegram.API != "" {
 				err = notifiers.TelegramMessage(conf.Telegram.API, conf.Telegram.Chat, curr[i].Title, curr[i].Asof, output, curr[i].Good)
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+			}
+
+			if conf.Twilio.Token != "" {
+				err = notifiers.TwilioMessage(conf.Twilio.SID, conf.Twilio.Token, conf.Twilio.TwilioNumber, conf.Twilio.SendTo, curr[i].Title, curr[i].Asof, output, curr[i].Good)
 				if err != nil {
 					fmt.Println(err.Error())
 				}
@@ -113,18 +123,18 @@ func check(t time.Time, conf helpers.Config) {
 		if conf.Options.Verbose {
 			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
 			if err != nil {
-				fmt.Println("Log could not be written. God save you, error return:")
+				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
 			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", "Output: \n"+output)
 			if err != nil {
-				fmt.Println("Log could not be written. God save you, error return:")
+				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
 		} else {
 			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
 			if err != nil {
-				fmt.Println("Log could not be written. God save you, error return:")
+				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
 		}

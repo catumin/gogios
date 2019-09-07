@@ -18,9 +18,9 @@ func TwilioMessage(sid, token, twilioNumber, sendTo, check, time, output string,
 		tailedOutput = string(runeOutput[len(output)-1250:])
 	}
 	if status {
-		message = url.QueryEscape(check + " Status changed to Success as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
+		message = check + " Status changed to Success as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
 	} else {
-		message = url.QueryEscape(check + " Status changed to Fail as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
+		message = check + " Status changed to Fail as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
 	}
 
 	urlString := "https://api.twilio.com/2010-04-01/Accounts/" + sid + "/Messages.json"
