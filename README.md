@@ -4,14 +4,6 @@ Simple system to check important services are on remote machines.
 
 ## Build Instructions
 
-I'm working on moving package creation to an Open Build Service instance, so I can do it all at once
-and have a way easier time. I also like to think that I have gotten slightly less foolish over time as I
-progress through the development of this project.
-
-Because of this, I'm rebuilding this repo to be more OBS compliant and a bit more usable in general.
-
-### New Method of Building
-
 I use go modules to track project dependencies. They should all be included in the vendor/ folder, but if not
 you can use:
 
@@ -83,3 +75,9 @@ as its webroot.
 The file that checks are pulled from is in /etc/gingertechengine, as well as an example nginx website config file.
 
 After installing Gogios, you can configure it at /etc/gingertechengine/gogios.toml.
+
+### Telegram
+
+If you so desire, you can follow the development of this project through Telegram here:
+
+https://t.me/bkasin_gogios
