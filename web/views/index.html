@@ -35,6 +35,12 @@
     <h3>Service Check Engine</h3>
 
     <p>
+      If the checks page 404's, it is likely because you are hosting this site through Nginx or Apache. For the best
+      expierence, use a reverse proxy to the port of the webserver that Gogiso is running. The port can be changed in
+      /etc/gingertechengine/gogios.toml.
+    </p>
+
+    <p>
       Welcome to the service checking engine! Below are the services that are being checked. Their status should update
       roughly every three minutes.
     </p>
@@ -47,6 +53,7 @@
     <div style="margin-top:20px">
       <script type="text/javascript" src="lib/jquery/dist/jquery.js"></script>
       <script type="text/javascript" src="js/table.js"></script>
+      <script type="text/javascript" src="js/index.js"></script>
       <table class="table table-bordered table-condensed table-hover table-striped">
         <thead>
           <tr>

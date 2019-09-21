@@ -28,10 +28,10 @@ func TelegramMessage(bot, channel, check, time, output string, status bool) erro
 
 	resp, err := http.Get(urlString)
 	if err != nil {
-		fmt.Println("Error posting Telegram message, error: ", err)
+		helpers.Log.Println("Error posting Telegram message, error: ", err)
 		logger := helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", time+" Telegram post failed | "+resp.Status)
 		if logger != nil {
-			fmt.Println("Log could not be written. God save you, error return:")
+			fmt.Println("Log could not be written. Error return:")
 			fmt.Println(logger.Error())
 		}
 		return errors.New("failed to post Telegram message")

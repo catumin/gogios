@@ -41,6 +41,9 @@ type twilio struct {
 	SendTo       string
 }
 
+// Version to be used by the web page
+var Version = "1.4-dev"
+
 // GetConfig reads and returns the confirg file as a struct
 func GetConfig() Config {
 	// Read and print the config file

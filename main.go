@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -26,6 +26,9 @@ type Check struct {
 }
 
 func main() {
+	// Create and start the log file
+	helpers.Log.Printf("Gogios pid=%d started with processes: %d", os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
+
 	// Read and print the config file
 	conf := helpers.GetConfig()
 
@@ -34,11 +37,6 @@ func main() {
 
 	// Set the PATH that will be used by checks
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
-
-	// Check if the log file exists, and create it if it doesn't
-	if _, err := os.Stat("/var/log/gingertechnology/service_check.log"); os.IsNotExist(err) {
-		helpers.CreateFile("/var/log/gingertechnology/service_check.log")
-	}
 
 	// Do a round of checks immediately...
 	check(time.Now(), conf)
@@ -50,8 +48,8 @@ func check(t time.Time, conf helpers.Config) {
 	// Read the raw check list into memory
 	raw, err := ioutil.ReadFile("/etc/gingertechengine/checks.json")
 	if err != nil {
-		fmt.Println("Check file could not be read, error return:")
-		fmt.Println(err.Error())
+		helpers.Log.Println("Check file could not be read, error return:")
+		helpers.Log.Println(err.Error())
 		os.Exit(1)
 	}
 
@@ -59,29 +57,29 @@ func check(t time.Time, conf helpers.Config) {
 	var curr, prev []Check
 	err = json.Unmarshal(raw, &curr)
 	if err != nil {
-		fmt.Println("JSON could not be unmarshaled, error return:")
-		fmt.Println(err.Error())
+		helpers.Log.Println("JSON could not be unmarshaled, error return:")
+		helpers.Log.Println(err.Error())
 		os.Exit(1)
 	}
 
 	// Copy the check values from the previous round of checks to a different file...
 	err = helpers.Copy("/opt/gingertechengine/js/current.json", "/opt/gingertechengine/js/prev.json")
 	if err != nil {
-		fmt.Println("Could not create copy of current check states, error return:")
-		fmt.Println(err.Error())
+		helpers.Log.Println("Could not create copy of current check states, error return:")
+		helpers.Log.Println(err.Error())
 	}
 
 	// ... And then use that to set the prev variable to the old results
 	raw, err = ioutil.ReadFile("/opt/gingertechengine/js/prev.json")
 	if err != nil {
-		fmt.Println("Previous check file could not be read, error return:")
-		fmt.Println(err.Error())
+		helpers.Log.Println("Previous check file could not be read, error return:")
+		helpers.Log.Println(err.Error())
 		os.Exit(1)
 	}
 	err = json.Unmarshal(raw, &prev)
 	if err != nil {
-		fmt.Println("JSON could not be unmarshaled, error return:")
-		fmt.Println(err.Error())
+		helpers.Log.Println("JSON could not be unmarshaled, error return:")
+		helpers.Log.Println(err.Error())
 		os.Exit(1)
 	}
 
@@ -104,21 +102,24 @@ func check(t time.Time, conf helpers.Config) {
 			if conf.Telegram.API != "" {
 				err = notifiers.TelegramMessage(conf.Telegram.API, conf.Telegram.Chat, curr[i].Title, curr[i].Asof, output, curr[i].Good)
 				if err != nil {
-					fmt.Println(err.Error())
+					helpers.Log.Println(err.Error())
 				}
 			}
 
 			if conf.Twilio.Token != "" {
 				err = notifiers.TwilioMessage(conf.Twilio.SID, conf.Twilio.Token, conf.Twilio.TwilioNumber, conf.Twilio.SendTo, curr[i].Title, curr[i].Asof, output, curr[i].Good)
 				if err != nil {
-					fmt.Println(err.Error())
+					helpers.Log.Println(err.Error())
 				}
 			}
 		}
 
-		helpers.WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
+		err = helpers.WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
+		if err != nil {
+			helpers.Log.Printf("Output for check %s could not be written to output file. Error return: %s", curr[i].Title, err.Error())
+		}
 
-		fmt.Println("Check " + curr[i].Title + " return: \n" + output)
+		helpers.Log.Println("Check " + curr[i].Title + " return: \n" + output)
 
 		if conf.Options.Verbose {
 			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
@@ -143,17 +144,17 @@ func check(t time.Time, conf helpers.Config) {
 	currentStatus, _ := json.Marshal(curr)
 	err = ioutil.WriteFile("/opt/gingertechengine/js/current.json", currentStatus, 0644)
 	if err != nil {
-		fmt.Println("Result check file could not be written, error return:")
-		fmt.Println(err.Error())
+		helpers.Log.Println("Result check file could not be written, error return:")
+		helpers.Log.Println(err.Error())
 	}
-	fmt.Printf("%+v", curr)
+	helpers.Log.Printf("%+v", curr)
 }
 
 func getCommandOutput(command string, args []string) (output string) {
 	cmd := exec.Command(command, args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Printf("cmd.Run() failed with %s\n", err)
+		helpers.Log.Printf("cmd.Run() failed with %s\n", err)
 		return
 	}
 	sha := string(out)

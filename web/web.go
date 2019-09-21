@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -22,12 +21,12 @@ func httpsRedirect(w http.ResponseWriter, r *http.Request) {
 }
 
 // renderTemplate renders page after passing some data to the HTML template
-func renderTemplate(w http.ResponseWriter, r *http.Request) {
+func renderChecks(w http.ResponseWriter, r *http.Request) {
 	// Load template from disk
 	tmpl := template.Must(template.ParseFiles("/opt/gingertechengine/checks.html"))
 	// Inject data into template
 	data := refresh * 60
-	fmt.Println(tmpl)
+	helpers.Log.Println("Checks page accessed")
 	tmpl.Execute(w, data)
 }
 
@@ -37,15 +36,15 @@ func ServePage(conf helpers.Config) {
 	// Serve static files while preventing directory listing
 	fs := http.FileServer(http.Dir("/opt/gingertechengine/"))
 	http.Handle("/", fs)
-	http.HandleFunc("/checks", renderTemplate)
+	http.HandleFunc("/checks", renderChecks)
+
+	if conf.WebOptions.SSL {
+		go http.ListenAndServeTLS(":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, nil)
+	}
 
 	if conf.WebOptions.Redirect {
 		go http.ListenAndServe(":"+strconv.Itoa(conf.WebOptions.HTTPPort), http.HandlerFunc(httpsRedirect))
 	} else {
 		go http.ListenAndServe(":"+strconv.Itoa(conf.WebOptions.HTTPPort), nil)
-	}
-
-	if conf.WebOptions.SSL {
-		go http.ListenAndServeTLS(":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, nil)
 	}
 }

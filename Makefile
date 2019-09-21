@@ -2,7 +2,7 @@
 
 DESTDIR :=
 
-VERSION := 1.3
+VERSION := 1.4
 LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.version=${VERSION}'
 MOD := -mod=vendor
 export G111MODULE=on
@@ -47,7 +47,6 @@ install: build
 	install -o gogios -g gogios -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
 	install -o root -g root -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
 	install -o root -g root -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
-	touch $(DESTDIR)/var/log/gingertechnology/service_check.log
 
 
 package: build
@@ -64,7 +63,6 @@ package: build
 	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
 	install -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
 	install -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
-	touch $(DESTDIR)/var/log/gingertechnology/service_check.log
 
 build:
 	mkdir -p bin/plugins

@@ -2,10 +2,11 @@ package notifiers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/bkasin/gogios/helpers"
 )
 
 // TwilioMessage uses the Twilio REST API to sned a text message alerting that a check has changed states
@@ -45,10 +46,10 @@ func TwilioMessage(sid, token, twilioNumber, sendTo, check, time, output string,
 		decoder := json.NewDecoder(resp.Body)
 		err := decoder.Decode(&data)
 		if err == nil {
-			fmt.Println(data["sid"])
+			helpers.Log.Println("Twilio message posted. SID: ", data["sid"])
 		}
 	} else {
-		fmt.Println(resp.Status)
+		helpers.Log.Println("Error sending Twilio message. Return was: ", resp.Status)
 	}
 
 	return nil
