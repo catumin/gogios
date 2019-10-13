@@ -4,6 +4,7 @@ if [ "$#" -ne 2 ]; then
   echo "Usage: ./check-tcp-port $target $ports"
   echo " target: IP or FQDN of the host to scan"
   echo " ports: comma separated list of ports (no spaces)"
+  echo "This scan is all or nothing. All ports most report open."
   exit 1
 fi
 

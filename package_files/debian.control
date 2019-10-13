@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Bailey Kasin <bailey@gingertechnology.net>
 Build-Depends: debhelper (>=9), golang, git
 Package: gogios
-Version: 1.3
+Version: 1.4
 Architecture: amd64
 Suggests: nginx, nmap
 Description: Checks to see

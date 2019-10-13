@@ -9,7 +9,7 @@ import (
 func TestCreateFile(t *testing.T) {
 	err := CreateFile("./testa")
 	if err != nil {
-		t.Errorf("File creation fialed, got error: %s", err)
+		t.Errorf("File creation failed, got error: %s", err)
 	}
 }
 

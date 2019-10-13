@@ -48,8 +48,6 @@ Download and install the latest release deb file and then start the service. For
 ```bash
 wget https://github.com/BKasin/Gogios/releases/download/VERSION/gogios-VERSION.deb
 sudo dpkg -i gogios-VERSION.deb
-sudo systemctl start gogios
-sudo systemctl enable gogios
 ```
 
 ### Arch
@@ -60,19 +58,23 @@ I have made an AUR package that can be installed with something like yay using:
 yay -S gogios-bin
 ```
 
+or
+
+```bash
+yay -S gogios
+```
+
 And then start and enable the service.
 
 ### All OSes
 
-You will need to install a webserver and have it point to
+You will need to start and enable the service with
 
 ```bash
-/opt/gingertechengine
+sudo systemctl enable --now gogios
 ```
 
-as its webroot.
-
-The file that checks are pulled from is in /etc/gingertechengine, as well as an example nginx website config file.
+The file that checks are pulled from is in /etc/gingertechengine, as well as an example nginx reverse proxy config file.
 
 After installing Gogios, you can configure it at /etc/gingertechengine/gogios.toml.
 
@@ -80,4 +82,4 @@ After installing Gogios, you can configure it at /etc/gingertechengine/gogios.to
 
 If you so desire, you can follow the development of this project through Telegram here:
 
-https://t.me/bkasin_gogios
+<https://t.me/bkasin_gogios>

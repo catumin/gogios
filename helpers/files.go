@@ -41,6 +41,7 @@ func WriteStringToFile(path, text string) error {
 func Copy(src, dst string) error {
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {
+		log.Println("File stat error:")
 		return err
 	}
 
@@ -50,12 +51,14 @@ func Copy(src, dst string) error {
 
 	source, err := os.Open(src)
 	if err != nil {
+		log.Println("File open error:")
 		return err
 	}
 	defer source.Close()
 
 	destination, err := os.Create(dst)
 	if err != nil {
+		log.Println("File create error:")
 		return err
 	}
 	defer destination.Close()

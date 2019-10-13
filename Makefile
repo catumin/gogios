@@ -46,6 +46,7 @@ install: build
 	install -o gogios -g gogios -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -o gogios -g gogios -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
 	install -o root -g root -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
+	install -o root -g root -T -m 755 bin/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
 	install -o root -g root -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 
 
@@ -62,6 +63,7 @@ package: build
 	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
 	install -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
+	install -T -m 755 scripts/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
 	install -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 
 build:

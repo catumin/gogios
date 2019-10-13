@@ -1,9 +1,10 @@
 package helpers
 
 import (
-	"flag"
+	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 var (
@@ -11,15 +12,18 @@ var (
 )
 
 func init() {
-	// set location of log file
-	var logpath = "/var/log/gingertechnology/service_check.log"
+	logPath := "/var/log/gingertechnology/service_check.log"
 
-	flag.Parse()
-	var file, err1 = os.Create(logpath)
-
-	if err1 != nil {
-		panic(err1)
+	err := Copy(logPath, logPath+time.Now().Format("20060102150405"))
+	if err != nil {
+		fmt.Println(err.Error())
 	}
+
+	file, err := os.Create(logPath)
+	if err != nil {
+		panic(err)
+	}
+
 	Log = log.New(file, "", log.LstdFlags|log.Lshortfile)
-	Log.Println("LogFile : " + logpath)
+	Log.Println("LogFile : " + logPath)
 }

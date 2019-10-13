@@ -33,3 +33,4 @@ bin/
 debug/
 *.tar.xz
 *.deb
+scripts/prep_release.sh

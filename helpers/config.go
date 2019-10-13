@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"fmt"
-	"os"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 )
@@ -21,6 +21,7 @@ type options struct {
 }
 
 type webOptions struct {
+	IP        string
 	HTTPPort  int
 	HTTPSPort int
 	TLSCert   string
@@ -42,18 +43,53 @@ type twilio struct {
 }
 
 // Version to be used by the web page
-var Version = "1.4-dev"
+var Version = "1.4"
+
+// ConfigTest reads and tests a config file to make sure
+// that all options are valid
+func ConfigTest(conf Config) {
+	fmt.Printf("OPTIONS\nGogios will run checks every: %d\nVerbose logging is set to: %s\n", conf.Options.Interval, strconv.FormatBool(conf.Options.Verbose))
+	fmt.Printf("WEB OPTIONS\nGogios will listen on IP: %s\nHTTP port is set to: %d\n", conf.WebOptions.IP, conf.WebOptions.HTTPPort)
+
+	if conf.WebOptions.SSL {
+		fmt.Printf("Gogios will listen for HTTPS on port: %d\nUsing TLS Cert: %s\nAnd TLS Key: %s\n", conf.WebOptions.HTTPSPort, conf.WebOptions.TLSCert, conf.WebOptions.TLSKey)
+		if conf.WebOptions.Redirect {
+			fmt.Println("Gogios will attempt to redirect HTTP to HTTPS")
+		} else {
+			fmt.Println("Gogios will not attempt to redirect HTTP to HTTPS")
+		}
+	} else {
+		fmt.Println("Gogios will not listen on HTTPS")
+	}
+
+	fmt.Printf("MESSAGERS\nTELEGRAM\n")
+
+	if conf.Telegram.API != "" {
+		fmt.Printf("Gogios will attempt to send Telegram messages to Chat: %s\nUsing Bot ID: %s\n", conf.Telegram.Chat, conf.Telegram.API)
+	} else {
+		fmt.Println("Gogios will not attempt to send Telegram messages")
+	}
+
+	fmt.Println("TWILIO")
+
+	if conf.Twilio.SID != "" {
+		fmt.Printf("Gogios will attempt to use Twilio to send messages from: %s\nTo: %s\nWith account SID: %s\nAnd auth token: %s\n", conf.Twilio.TwilioNumber, conf.Twilio.SendTo, conf.Twilio.SID, conf.Twilio.Token)
+	} else {
+		fmt.Println("Gogios will not attempt to send Twilio messages")
+	}
+}
 
 // GetConfig reads and returns the confirg file as a struct
-func GetConfig() Config {
+func GetConfig(config string) (Config, error) {
 	// Read and print the config file
 	var conf Config
-	if _, err := toml.DecodeFile("/etc/gingertechengine/gogios.toml", &conf); err != nil {
-		fmt.Println("Config file could not be decoded, error return:")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Printf("%#v\n", conf)
 
-	return conf
+	if _, err := toml.DecodeFile(config, &conf); err != nil {
+		fmt.Printf("Config file could not be decoded, error return:\n%s", err.Error())
+		return conf, err
+	}
+
+	ConfigTest(conf)
+
+	return conf, nil
 }

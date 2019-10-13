@@ -8,6 +8,7 @@ interval = 3
 verbose = false
 
 [webOptions]
+IP = "127.0.0.1"
 HTTPPort = 8411
 HTTPSPort = 8412
 # Should the website be hosted on HTTPS

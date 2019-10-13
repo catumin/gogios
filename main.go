@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -15,6 +16,10 @@ import (
 	"github.com/bkasin/gogios/web"
 )
 
+var (
+	config  = flag.String("config", "/etc/gingertechengine/gogios.toml", "Config file to use")
+)
+
 // Check - struct to format checks
 type Check struct {
 	Title    string `json:"title"`
@@ -26,11 +31,17 @@ type Check struct {
 }
 
 func main() {
+	flag.Parse()
+
 	// Create and start the log file
 	helpers.Log.Printf("Gogios pid=%d started with processes: %d", os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
 	// Read and print the config file
-	conf := helpers.GetConfig()
+	conf, err := helpers.GetConfig(*config)
+	if err != nil {
+		helpers.Log.Printf("Gogios config test failed. Error was:\n%s", err.Error())
+		os.Exit(1)
+	}
 
 	// Start serving the website
 	web.ServePage(conf)

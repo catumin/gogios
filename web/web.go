@@ -9,7 +9,7 @@ import (
 )
 
 // Have the page refresh default to 180. Gets set in ServePage
-var refresh = 180
+var refresh = 3
 
 // httpsRedirect redirects HTTP requests to HTTPS
 func httpsRedirect(w http.ResponseWriter, r *http.Request) {
@@ -39,12 +39,12 @@ func ServePage(conf helpers.Config) {
 	http.HandleFunc("/checks", renderChecks)
 
 	if conf.WebOptions.SSL {
-		go http.ListenAndServeTLS(":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, nil)
+		go http.ListenAndServeTLS(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, nil)
 	}
 
 	if conf.WebOptions.Redirect {
-		go http.ListenAndServe(":"+strconv.Itoa(conf.WebOptions.HTTPPort), http.HandlerFunc(httpsRedirect))
+		go http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), http.HandlerFunc(httpsRedirect))
 	} else {
-		go http.ListenAndServe(":"+strconv.Itoa(conf.WebOptions.HTTPPort), nil)
+		go http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), nil)
 	}
 }

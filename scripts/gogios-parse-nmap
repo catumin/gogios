@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+
+__author__ = 'Bailey Kasin (@BKasin) and Jake Miller (@LaconicWolf)'
+__date__ = '10122019'
+__description__ = """Parses the XML output from an nmap scan. This
+                     data is used to generate Gogios checks in JSON format.
+
+                     This script is made based on LaconicWolf's script here:
+                     https://github.com/laconicwolf/Nmap-Scan-to-CSV
+                  """
+
+import xml.etree.ElementTree as etree
+import os
+import json
+import argparse
+from collections import Counter
+from time import sleep
+
+
+def get_host_data(root):
+    """Traverses the xml tree and build lists of scan information
+    and returns a list of lists.
+    """
+    host_data = []
+    hosts = root.findall('host')
+    for host in hosts:
+        addr_info = []
+
+        # Ignore hosts that are not 'up'
+        if not host.findall('status')[0].attrib['state'] == 'up':
+            continue
+
+        # Get IP address and host info. If no hostname, then ''
+        ip_address = host.findall('address')[0].attrib['addr']
+        host_name_element = host.findall('hostnames')
+        try:
+            host_name = host_name_element[0].findall('hostname')[
+                0].attrib['name']
+        except IndexError:
+            host_name = ''
+
+        # Get the OS information if available, else ''
+        try:
+            os_element = host.findall('os')
+            os_name = os_element[0].findall('osmatch')[0].attrib['name']
+        except IndexError:
+            os_name = ''
+
+        # Get information on ports and services
+        try:
+            port_element = host.findall('ports')
+            ports = port_element[0].findall('port')
+            for port in ports:
+                port_data = []
+
+                if args.udp_open:
+                    # Display both open ports and open}filtered ports
+                    if not 'open' in port.findall('state')[0].attrib['state']:
+                        continue
+                else:
+                    # Ignore ports that are not 'open'
+                    if not port.findall('state')[0].attrib['state'] == 'open':
+                        continue
+
+                proto = port.attrib['protocol']
+                port_id = port.attrib['portid']
+                service = port.findall('service')[0].attrib['name']
+                try:
+                    product = port.findall('service')[0].attrib['product']
+                except (IndexError, KeyError):
+                    product = ''
+                try:
+                    servicefp = port.findall('service')[0].attrib['servicefp']
+                except (IndexError, KeyError):
+                    servicefp = ''
+                try:
+                    script_id = port.findall('script')[0].attrib['id']
+                except (IndexError, KeyError):
+                    script_id = ''
+                try:
+                    script_output = port.findall('script')[0].attrib['output']
+                except (IndexError, KeyError):
+                    script_output = ''
+
+                # Create a list of the port data
+                port_data.extend((ip_address, host_name, os_name,
+                                  proto, port_id, service, product,
+                                  servicefp, script_id, script_output))
+
+                # Add the port data to the host data
+                host_data.append(port_data)
+
+        # If no port information, just create a list of host information
+        except IndexError:
+            addr_info.extend((ip_address, host_name))
+            host_data.append(addr_info)
+    return host_data
+
+
+def parse_xml(filename):
+    """Given an XML filename, reads and parses the XML file and passes the
+    the root node of type xml.etree.ElementTree.Element to the get_host_data
+    function, which will futher parse the data and return a list of lists
+    containing the scan data for a host or hosts."""
+    try:
+        tree = etree.parse(filename)
+    except Exception as error:
+        print("[-] A an error occurred. The XML may not be well formed. "
+              "Please review the error and try again: {}".format(error))
+        exit()
+    root = tree.getroot()
+    scan_data = get_host_data(root)
+    return scan_data
+
+
+def parse_to_json(data):
+    """Given a list of data, adds the items to (or creates) a JSON file."""
+    json_writer = []
+
+    for item in data:
+        json_writer.append({"title": item[0] + " " + item[5], "command": "/usr/lib/gingertechengine/plugins/check-tcp-port " +
+                            item[0] + " " + item[4], "expected": "Success", "good": 'false', "asof": ""})
+        print(item)
+
+    with open(json_name, 'w') as outfile:
+        json.dump(json_writer, outfile, indent=4)
+
+
+def print_data(data):
+    """Prints the data to the terminal."""
+    for item in data:
+        print(' '.join(item))
+
+
+def main():
+    """Main function of the script."""
+    for filename in args.filename:
+
+        # Checks the file path
+        if not os.path.exists(filename):
+            parser.print_help()
+            print("\n[-] The file {} cannot be found or you do not have "
+                  "permission to open the file.".format(filename))
+            continue
+
+        if not args.skip_entity_check:
+            # Read the file and check for entities
+            with open(filename) as fh:
+                contents = fh.read()
+                if '<!entity' in contents.lower():
+                    print("[-] Error! This program does not permit XML "
+                          "entities. Ignoring {}".format(filename))
+                    print("[*] Use -s (--skip_entity_check) to ignore this "
+                          "check for XML entities.")
+                    continue
+        data = parse_xml(filename)
+        if not data:
+            print("[*] Zero hosts identitified as 'Up' or with 'open' ports. "
+                  "Use the -u option to display ports that are 'open|filtered'. "
+                  "Exiting.")
+            exit()
+        if args.json:
+            parse_to_json(data)
+
+        if args.print_all:
+            print_data(data)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug",
+                        help="Display error information",
+                        action="store_true")
+    parser.add_argument("-s", "--skip_entity_check",
+                        help="Skip the check for XML entities",
+                        action="store_true")
+    parser.add_argument("-p", "--print_all",
+                        help="Display scan information to the screen",
+                        action="store_true")
+    parser.add_argument("-o", "--json",
+                        nargs='?', const='checks.json',
+                        help="Specify the name of a json file to write to. "
+                             "If the file already exists it will be appended")
+    parser.add_argument("-f", "--filename",
+                        action='append',
+                        help="Specify a file containing the output of an nmap "
+                             "scan in xml format. Can be passed several times "
+                             "to scan several files into one JSON")
+    parser.add_argument("-u", "--udp_open",
+                        help="Displays the UDP ports identified as "
+                             "open|filtered",
+                        action="store_true")
+    args = parser.parse_args()
+
+    if not args.filename:
+        parser.print_help()
+        print("\n[-] Please specify an input file to parse. "
+              "Use -f <nmap_scan.xml> to specify the file\n")
+        exit()
+    if not args.json and not args.print_all \
+            and not args.filter_by_port:
+        parser.print_help()
+        print("\n[-] Please choose an output option. Use -o or -p\n")
+        exit()
+    json_name = args.json
+    main()
