@@ -17,6 +17,17 @@ from collections import Counter
 from time import sleep
 
 
+# Replace a string in a file like sed
+def inplace_change(filename, find, replace):
+    with open(filename) as f:
+        s = f.read()
+        if find not in s:
+            return
+    with open(filename, 'w') as f:
+        s = s.replace(find, replace)
+        f.write(s)
+
+
 def get_host_data(root):
     """Traverses the xml tree and build lists of scan information
     and returns a list of lists.
@@ -119,11 +130,13 @@ def parse_to_json(data):
 
     for item in data:
         json_writer.append({"title": item[0] + " " + item[5], "command": "/usr/lib/gingertechengine/plugins/check-tcp-port " +
-                            item[0] + " " + item[4], "expected": "Success", "good": 'false', "asof": ""})
+                            item[0] + " " + item[4], "expected": "Success", "good": "false", "asof": ""})
         print(item)
 
     with open(json_name, 'w') as outfile:
         json.dump(json_writer, outfile, indent=4)
+
+    inplace_change(json_name, '"good": "false"', '"good": false')
 
 
 def print_data(data):

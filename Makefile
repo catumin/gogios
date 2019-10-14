@@ -32,7 +32,7 @@ lint:
 	golangci-lint run ./
 	for p in plugins/*; do golangci-lint run $$p; done
 
-install: build
+install:
 	useradd --system --user-group --home-dir /var/spool/gogios --shell /sbin/nologin gogios
 	install -d -o gogios -g gogios -m 644 $(DESTDIR)/var/log/gingertechnology
 	install -d -o gogios -g gogios -m 664 $(DESTDIR)/etc/gingertechengine
@@ -50,7 +50,7 @@ install: build
 	install -o root -g root -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 
 
-package: build
+package:
 	install -d $(DESTDIR)/var/log/gingertechnology
 	install -d $(DESTDIR)/etc/gingertechengine
 	install -d $(DESTDIR)/usr/lib/gingertechengine/plugins

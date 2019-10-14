@@ -50,6 +50,19 @@
     </pre>
 
     <p>
+      To easily convert an nmap scan to a framework for a Gogios check file, you can use the gogios-parse-nmap script.
+      Run an nmap scan with -oX scan.xml, and then:
+    </p>
+
+    <pre>
+      gogios-parse-nmap -f scan.xml -o scan.json
+    </pre>
+
+    <p>
+      And then take the checks that you want from that output and add it to your checks.json.
+    </p>
+
+    <p>
       Plugins that I have built are stored in
       /usr/lib/gingertechengine/plugins, and examples of the usage is available by running them with
       the --help flag, or by looking in /etc/gingertechengine/example.json.
