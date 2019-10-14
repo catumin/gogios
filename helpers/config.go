@@ -48,7 +48,7 @@ var Version = "1.4"
 // ConfigTest reads and tests a config file to make sure
 // that all options are valid
 func ConfigTest(conf Config) {
-	fmt.Printf("OPTIONS\nGogios will run checks every: %d\nVerbose logging is set to: %s\n", conf.Options.Interval, strconv.FormatBool(conf.Options.Verbose))
+	fmt.Printf("OPTIONS\nGogios will run checks every: %d minutes\nVerbose logging is set to: %s\n", conf.Options.Interval, strconv.FormatBool(conf.Options.Verbose))
 	fmt.Printf("WEB OPTIONS\nGogios will listen on IP: %s\nHTTP port is set to: %d\n", conf.WebOptions.IP, conf.WebOptions.HTTPPort)
 
 	if conf.WebOptions.SSL {
