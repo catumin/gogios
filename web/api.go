@@ -21,5 +21,5 @@ func apiHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCheckStatus(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println("")
 }
