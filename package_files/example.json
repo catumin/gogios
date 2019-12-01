@@ -1,6 +1,6 @@
 [
   {
-    "id": 1,
+    "id": "1",
     "title": "Integrity of Service Engine",
     "command": "echo working",
     "expected": "working",
@@ -8,7 +8,7 @@
     "asof": ""
   },
   {
-    "id": 2,
+    "id": "2",
     "title": "SSH",
     "command": "/usr/lib/gingertechengine/plugins/check-ssh -host 123.123.123.123 -password scoringengine -user scoringengine",
     "expected": "Successful login",
@@ -16,7 +16,7 @@
     "asof": ""
   },
   {
-    "id": 3,
+    "id": "3",
     "title": "Web",
     "command": "curl -I https://angrysysadmins.tech",
     "expected": "200 OK",
@@ -24,7 +24,7 @@
     "asof": ""
   },
   {
-    "id": 4,
+    "id": "4",
     "title": "DNS",
     "command": "/usr/lib/gingertechengine/plugins/check-dns -domain angrysysadmins.tech -record A -server 123.123.123.123",
     "expected": "45.77.71.224",
@@ -32,7 +32,7 @@
     "asof": ""
   },
   {
-    "id": 5,
+    "id": "5",
     "title": "FTP",
     "command": "/usr/lib/gingertechengine/plugins/check-ftp -host 123.123.123.123",
     "expected": "Successful connection",
@@ -40,7 +40,7 @@
     "asof": ""
   },
   {
-    "id": 6,
+    "id": "6",
     "title": "Host Alive",
     "command": "/usr/lib/gingertechengine/plugins/check-host-alive -host 123.123.123.123",
     "expected": "Successful connection",
@@ -48,7 +48,7 @@
     "asof": ""
   },
   {
-    "id": 7,
+    "id": "7",
     "title": "MySQL",
     "command": "/usr/lib/gingertechengine/plugins/check-mysql -host 123.123.123.123 -user username -password password123 -database dbname",
     "expected": "Successful connection",
@@ -56,7 +56,7 @@
     "asof": ""
   },
   {
-    "id": 8,
+    "id": "8",
     "title": "TCP Port",
     "command": "/usr/lib/gingertechengine/plugins/check-tcp-port 123.123.123.123 80",
     "expected": "Success",

@@ -3,18 +3,21 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 
+	"github.com/bkasin/gogios/helpers"
 	"github.com/gorilla/mux"
 )
 
 type status struct {
-	ID          int `json:"ID"`
-	Title       string `json:"Title"`
-	Good bool `json:"good"`
+	ID    string `json:"ID"`
+	Title string `json:"Title"`
+	Good  bool   `json:"good"`
 }
 
-type allChecks []status
+var allChecks []status
 
 func apiHome(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "API home was accessed")
@@ -23,14 +26,14 @@ func apiHome(w http.ResponseWriter, r *http.Request) {
 func getCheckStatus(w http.ResponseWriter, r *http.Request) {
 	checkID := mux.Vars(r)["check"]
 
-	raw, err = ioutil.ReadFile("/opt/gingertechengine/js/current.json")
+	raw, err := ioutil.ReadFile("/opt/gingertechengine/js/current.json")
 	if err != nil {
 		helpers.Log.Println("Previous check file could not be read, error return:")
 		helpers.Log.Println(err.Error())
 		os.Exit(1)
 	}
 
-	var checks = json.Unmarshal(raw, &allChecks)
+	err = json.Unmarshal(raw, &allChecks)
 
 	for _, singleCheck := range allChecks {
 		if singleCheck.ID == checkID {
