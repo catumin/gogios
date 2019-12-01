@@ -12,7 +12,6 @@ import (
 
 	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/notifiers"
-	"github.com/bkasin/gogios/outputs/prometheus"
 	"github.com/bkasin/gogios/web"
 )
 
@@ -46,9 +45,8 @@ func main() {
 	// Start serving the website
 	web.ServePage(conf)
 
-	// If Prometheus is set to true, start hosting that server too
-	if conf.Prometheus.Host {
-		go prometheus.Prometheus(conf)
+	if conf.WebOptions.ExposeAPI {
+		go web.API(conf)
 	}
 
 	// Set the PATH that will be used by checks

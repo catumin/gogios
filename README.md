@@ -22,6 +22,8 @@ to collect them all (in theory, go get -d ./... will do the same thing).
 Once you have those, you can build the project with:
 
 ```bash
+# Create the gogios user if it does not exit yet
+useradd --system --user-group --home-dir /var/spool/gogios -m --shell /sbin/nologin gogios
 make
 ```
 

@@ -33,7 +33,6 @@ lint:
 	for p in ${GOPLUGINS}; do golangci-lint run $$p; done
 
 install:
-	useradd --system --user-group --home-dir /var/spool/gogios --shell /sbin/nologin gogios
 	install -d -o gogios -g gogios -m 644 $(DESTDIR)/var/log/gingertechnology
 	install -d -o gogios -g gogios -m 664 $(DESTDIR)/etc/gingertechengine
 	install -d -o gogios -g gogios -m 775 $(DESTDIR)/usr/lib/gingertechengine/plugins
@@ -46,7 +45,7 @@ install:
 	install -o gogios -g gogios -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
 	install -o gogios -g gogios -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
 	install -o root -g root -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
-	install -o root -g root -T -m 755 bin/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
+	install -o root -g root -T -m 755 scripts/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
 	install -o root -g root -T -m 755 bin/gogios-$(VERSION)-$(PLATFORM) $(DESTDIR)/usr/bin/gogios
 
 

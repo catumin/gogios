@@ -13,7 +13,6 @@ type Config struct {
 	WebOptions webOptions
 	Telegram   telegram
 	Twilio     twilio
-	Prometheus prometheus
 }
 
 type options struct {
@@ -29,6 +28,7 @@ type webOptions struct {
 	TLSKey    string
 	SSL       bool
 	Redirect  bool
+	ExposeAPI bool
 }
 
 type telegram struct {
@@ -41,12 +41,6 @@ type twilio struct {
 	Token        string
 	TwilioNumber string
 	SendTo       string
-}
-
-type prometheus struct {
-	Host bool
-	IP   string
-	Port string
 }
 
 // Version to be used by the web page
@@ -69,6 +63,10 @@ func ConfigTest(conf Config) {
 		fmt.Println("Gogios will not listen on HTTPS")
 	}
 
+	if conf.WebOptions.ExposeAPI {
+		fmt.Println("The Gogios web API will be available")
+	}
+
 	fmt.Printf("NOTIFIERS\nTELEGRAM\n")
 
 	if conf.Telegram.API != "" {
@@ -83,14 +81,6 @@ func ConfigTest(conf Config) {
 		fmt.Printf("Gogios will attempt to use Twilio to send messages from: %s\nTo: %s\nWith account SID: %s\nAnd auth token: %s\n", conf.Twilio.TwilioNumber, conf.Twilio.SendTo, conf.Twilio.SID, conf.Twilio.Token)
 	} else {
 		fmt.Println("Gogios will not attempt to send Twilio messages")
-	}
-
-	fmt.Printf("OUTPUTS\nPROMETHEUS\n")
-
-	if conf.Prometheus.Host {
-		fmt.Printf("Gogios will host /metrics at: %s;%s", conf.Prometheus.IP, conf.Prometheus.Port)
-	} else {
-		fmt.Printf("Prometheus metrics will not be gathered or hosted")
 	}
 }
 

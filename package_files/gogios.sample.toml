@@ -22,6 +22,7 @@ redirect = false
 # Path to TLS cert and key for HTTPS
 TLSCert = ""
 TLSKey = ""
+exposeAPI = true
 
 ###########################
 #
@@ -49,17 +50,3 @@ token = ""
 twilioNumber = ""
 # Phone number that should be texted with the notification
 sendTo = ""
-
-###########################
-#
-# Data Outputs
-#
-###########################
-
-[prometheus]
-# Should Gogios host Prometheus metrics?
-host = false
-# Address to make Prometheus metrics available on. 0.0.0.0 for all
-IP = "0.0.0.0"
-# Port that Gogios will make metric available on
-port = "9402"
