@@ -1,13 +1,17 @@
 # Options for Gogios
 # https://github.com/bkasin/gogios
 # https://angrysysadmins.tech
+
 [options]
 # How often to run checks in minutes
 interval = 3
 # Verbose logging. true or false
 verbose = false
+# The name of the node for Grafana and the web interface
+name = "Gogios"
 
 [webOptions]
+# Change IP to 0.0.0.0 to listen on all interfaces
 IP = "127.0.0.1"
 HTTPPort = 8411
 HTTPSPort = 8412
@@ -18,6 +22,12 @@ redirect = false
 # Path to TLS cert and key for HTTPS
 TLSCert = ""
 TLSKey = ""
+
+###########################
+#
+# Notifiers
+#
+###########################
 
 # Telegram is an open source, secure chatting application
 # https://telegram.org/
@@ -39,3 +49,17 @@ token = ""
 twilioNumber = ""
 # Phone number that should be texted with the notification
 sendTo = ""
+
+###########################
+#
+# Data Outputs
+#
+###########################
+
+[prometheus]
+# Should Gogios host Prometheus metrics?
+host = false
+# Address to make Prometheus metrics available on. 0.0.0.0 for all
+IP = "0.0.0.0"
+# Port that Gogios will make metric available on
+port = "9402"

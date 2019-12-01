@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	// Log holds the needed information for the logging service
 	Log *log.Logger
 )
 

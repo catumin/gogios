@@ -7,17 +7,17 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/notifiers"
+	"github.com/bkasin/gogios/outputs/prometheus"
 	"github.com/bkasin/gogios/web"
 )
 
 var (
-	config  = flag.String("config", "/etc/gingertechengine/gogios.toml", "Config file to use")
+	config = flag.String("config", "/etc/gingertechengine/gogios.toml", "Config file to use")
 )
 
 // Check - struct to format checks
@@ -34,7 +34,7 @@ func main() {
 	flag.Parse()
 
 	// Create and start the log file
-	helpers.Log.Printf("Gogios pid=%d started with processes: %d", os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
+	helpers.Log.Printf("Gogios pid=%d", os.Getpid())
 
 	// Read and print the config file
 	conf, err := helpers.GetConfig(*config)
@@ -45,6 +45,11 @@ func main() {
 
 	// Start serving the website
 	web.ServePage(conf)
+
+	// If Prometheus is set to true, start hosting that server too
+	if conf.Prometheus.Host {
+		go prometheus.Prometheus(conf)
+	}
 
 	// Set the PATH that will be used by checks
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
@@ -71,6 +76,15 @@ func check(t time.Time, conf helpers.Config) {
 		helpers.Log.Println("JSON could not be unmarshaled, error return:")
 		helpers.Log.Println(err.Error())
 		os.Exit(1)
+	}
+
+	// Copy checks.json to current.json if it does not exist
+	if _, err := os.Stat("/opt/gingertechengine/js/current.json"); os.IsNotExist(err) {
+		err = helpers.Copy("/etc/gingertechengine/checks.json", "/opt/gingertechengine/js/current.json")
+		if err != nil {
+			helpers.Log.Println("Could not copy checks template to current.json, error return:")
+			helpers.Log.Println(err.Error())
+		}
 	}
 
 	// Copy the check values from the previous round of checks to a different file...

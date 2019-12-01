@@ -30,7 +30,7 @@ test:
 
 lint:
 	golangci-lint run ./
-	for p in plugins/*; do golangci-lint run $$p; done
+	for p in ${GOPLUGINS}; do golangci-lint run $$p; done
 
 install:
 	useradd --system --user-group --home-dir /var/spool/gogios --shell /sbin/nologin gogios
