@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	"github.com/bkasin/gogios/helpers"
 	"github.com/gorilla/mux"
@@ -19,6 +18,18 @@ type status struct {
 
 var allChecks []status
 
+func getCurrentJSON() []status {
+	raw, err := ioutil.ReadFile("/opt/gingertechengine/js/current.json")
+	if err != nil {
+		helpers.Log.Println("Could not open current.json")
+		helpers.Log.Println(err.Error())
+	}
+
+	err = json.Unmarshal(raw, &allChecks)
+
+	return allChecks
+}
+
 func apiHome(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "API home was accessed")
 }
@@ -26,14 +37,7 @@ func apiHome(w http.ResponseWriter, r *http.Request) {
 func getCheckStatus(w http.ResponseWriter, r *http.Request) {
 	checkID := mux.Vars(r)["check"]
 
-	raw, err := ioutil.ReadFile("/opt/gingertechengine/js/current.json")
-	if err != nil {
-		helpers.Log.Println("Previous check file could not be read, error return:")
-		helpers.Log.Println(err.Error())
-		os.Exit(1)
-	}
-
-	err = json.Unmarshal(raw, &allChecks)
+	allChecks := getCurrentJSON()
 
 	for _, singleCheck := range allChecks {
 		if singleCheck.ID == checkID {
@@ -43,5 +47,7 @@ func getCheckStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllChecks(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode("/opt/gogios/js/current.json")
+	allChecks := getCurrentJSON()
+
+	json.NewEncoder(w).Encode(allChecks)
 }
