@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Options    options
 	WebOptions webOptions
+	API        api
 	Telegram   telegram
 	Twilio     twilio
 }

@@ -45,10 +45,6 @@ func main() {
 	// Start serving the website
 	web.ServePage(conf)
 
-	if conf.WebOptions.ExposeAPI {
-		go web.API(conf)
-	}
-
 	// Set the PATH that will be used by checks
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
 
