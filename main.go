@@ -21,6 +21,7 @@ var (
 
 // Check - struct to format checks
 type Check struct {
+	ID       int    `json:id`
 	Title    string `json:"title"`
 	Command  string `json:"command"`
 	Expected string `json:"expected"`

@@ -43,6 +43,8 @@ func ServePage(conf helpers.Config) {
 	if conf.WebOptions.ExposeAPI {
 		// All API calls will live under /api/
 		router.HandleFunc("/api/", apiHome)
+		router.HandleFunc("/api/getAllChecks", getAllChecks)
+		router.HandleFunc("/api/getCheckStatus/{check}", getCheckStatus)
 	}
 
 	if conf.WebOptions.SSL {
