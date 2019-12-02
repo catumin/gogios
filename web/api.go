@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/bkasin/gogios/helpers"
 	"github.com/gorilla/mux"
@@ -17,6 +18,15 @@ type status struct {
 }
 
 var allChecks []status
+
+// API is the main handler for all API calls
+func API(conf helpers.Config) {
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/api/", apiHome)
+	router.HandleFunc("/api/getAllChecks", getAllChecks)
+	router.HandleFunc("/api/getCheckStatus/{check}", getCheckStatus)
+	helpers.Log.Fatal(http.ListenAndServe(conf.WebOptions.APIIP+":"+strconv.Itoa(conf.WebOptions.APIPort), router))
+}
 
 func getCurrentJSON() []status {
 	raw, err := ioutil.ReadFile("/opt/gingertechengine/js/current.json")

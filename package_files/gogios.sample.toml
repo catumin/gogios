@@ -7,8 +7,6 @@
 interval = 3
 # Verbose logging. true or false
 verbose = false
-# The name of the node for Grafana and the web interface
-name = "Gogios"
 
 [webOptions]
 # Change IP to 0.0.0.0 to listen on all interfaces
@@ -24,6 +22,8 @@ TLSCert = ""
 TLSKey = ""
 
 exposeAPI = true
+APIIP = "0.0.0.0"
+APIPort = 8413
 
 ###########################
 #

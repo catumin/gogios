@@ -6,7 +6,6 @@ import (
 	"text/template"
 
 	"github.com/bkasin/gogios/helpers"
-	"github.com/gorilla/mux"
 )
 
 // Have the page refresh default to 180. Gets set in ServePage
@@ -36,24 +35,16 @@ func ServePage(conf helpers.Config) {
 	refresh = conf.Options.Interval
 	// Serve static files while preventing directory listing
 	fs := http.FileServer(http.Dir("/opt/gingertechengine/"))
-	router := mux.NewRouter().StrictSlash(true)
-	router.Handle("/", fs)
-	router.HandleFunc("/checks", renderChecks)
-
-	if conf.WebOptions.ExposeAPI {
-		// All API calls will live under /api/
-		router.HandleFunc("/api/", apiHome)
-		router.HandleFunc("/api/getAllChecks", getAllChecks)
-		router.HandleFunc("/api/getCheckStatus/{check}", getCheckStatus)
-	}
+	http.Handle("/", fs)
+	http.HandleFunc("/checks", renderChecks)
 
 	if conf.WebOptions.SSL {
-		go http.ListenAndServeTLS(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, router)
+		go http.ListenAndServeTLS(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, nil)
 	}
 
 	if conf.WebOptions.Redirect {
 		go http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), http.HandlerFunc(httpsRedirect))
 	} else {
-		go http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), router)
+		go http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), nil)
 	}
 }

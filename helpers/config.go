@@ -29,6 +29,8 @@ type webOptions struct {
 	SSL       bool
 	Redirect  bool
 	ExposeAPI bool
+	APIIP     string
+	APIPort   int
 }
 
 type telegram struct {
@@ -64,7 +66,7 @@ func ConfigTest(conf Config) {
 	}
 
 	if conf.WebOptions.ExposeAPI {
-		fmt.Println("The Gogios web API will be available")
+		fmt.Printf("The Gogios web API will be available at %s:%d\n", conf.WebOptions.APIIP, conf.WebOptions.APIPort)
 	}
 
 	fmt.Printf("NOTIFIERS\nTELEGRAM\n")
