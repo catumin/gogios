@@ -24,7 +24,7 @@ func API(conf helpers.Config) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/", apiHome)
 	router.HandleFunc("/api/getAllChecks", getAllChecks)
-	router.HandleFunc("/api/getCheckStatus/{check}", getCheckStatus)
+	router.HandleFunc("/api/getCheck/{check}", getCheckStatus)
 	helpers.Log.Fatal(http.ListenAndServe(conf.WebOptions.APIIP+":"+strconv.Itoa(conf.WebOptions.APIPort), router))
 }
 
@@ -41,7 +41,8 @@ func getCurrentJSON() []status {
 }
 
 func apiHome(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "API home was accessed")
+	fmt.Fprintf(w, "API home page")
+	w.WriteHeader(http.StatusTeapot)
 }
 
 func getCheckStatus(w http.ResponseWriter, r *http.Request) {
