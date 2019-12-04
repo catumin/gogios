@@ -15,6 +15,7 @@ type status struct {
 	ID    string `json:"ID"`
 	Title string `json:"Title"`
 	Good  bool   `json:"good"`
+	Asof  string `json:"asof"`
 }
 
 var allChecks []status
