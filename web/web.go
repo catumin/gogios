@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/bkasin/gogios/helpers"
+	"github.com/bkasin/gogios/helpers/config"
 )
 
 // Have the page refresh default to 180. Gets set in ServePage
@@ -31,7 +32,7 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServePage hosts a server based on options from the config file
-func ServePage(conf helpers.Config) {
+func ServePage(conf *config.Config) {
 	refresh = conf.Options.Interval
 	// Serve static files while preventing directory listing
 	fs := http.FileServer(http.Dir("/opt/gingertechengine/"))

@@ -31,23 +31,29 @@ APIPort = 8413
 #
 ###########################
 
-# Telegram is an open source, secure chatting application
-# https://telegram.org/
-# https://github.com/telegramdesktop
-[telegram]
-# Telegram bot API key
-api = ""
-# Chat to post to, usually a negative number for groups and a positive one for direct
-chat = ""
+## Telegram is an open source, secure chatting application
+## https://telegram.org/
+## https://github.com/telegramdesktop
+# [[notifiers.telegram]]
+#   ## Telegram bot API key
+#   api = ""
+#   ## Chat to post to, usually a negative number for groups and a positive one for direct
+#   chat = [""]
+#
+#   ## HTTP response timeout (default: 10s)
+#   response_timeout = "10s"
 
-# Twilio is a service that allows for sending SMS messages
-# https://www.twilio.com
-[twilio]
-# Account SID
-sid = ""
-# Account auth token
-token = ""
-# Phone number for your Twilio account
-twilioNumber = ""
-# Phone number that should be texted with the notification
-sendTo = ""
+## Twilio is a service that allows for sending SMS messages
+## https://www.twilio.com
+#[[notifiers.twilio]]
+#   ## Account SID
+#   sid = ""
+#   ## Account auth token
+#   token = ""
+#   ## Phone number for your Twilio account
+#   twilioNumber = ""
+#   ## Phone number that should be texted with the notification
+#   sendTo = ""
+#
+#   ## HTTP response timeout (default: 10s)
+#   response_timeout = "10s"

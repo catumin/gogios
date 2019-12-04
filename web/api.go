@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/bkasin/gogios/helpers"
+	"github.com/bkasin/gogios/helpers/config"
 	"github.com/gorilla/mux"
 )
 
@@ -21,7 +22,7 @@ type status struct {
 var allChecks []status
 
 // API is the main handler for all API calls
-func API(conf helpers.Config) {
+func API(conf *config.Config) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/", apiHome)
 	router.HandleFunc("/api/getAllChecks", getAllChecks)
@@ -53,6 +54,7 @@ func getCheckStatus(w http.ResponseWriter, r *http.Request) {
 
 	for _, singleCheck := range allChecks {
 		if singleCheck.ID == checkID {
+			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(singleCheck)
 		}
 	}
@@ -61,5 +63,6 @@ func getCheckStatus(w http.ResponseWriter, r *http.Request) {
 func getAllChecks(w http.ResponseWriter, r *http.Request) {
 	allChecks := getCurrentJSON()
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(allChecks)
 }

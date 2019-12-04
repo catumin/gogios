@@ -1,15 +1,15 @@
 VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git rev-parse --short HEAD)
-DESTDIR :=
 
-LDFLAGS := $(LDFLAGS)-gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -X main.commit=$(COMMIT) -X main.branch=$(BRANCH) 
+LDFLAGS := $(LDFLAGS) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH) 
 ifdef VERSION
 	LDFLAGS += -X main.version=$(VERSION)
+else
+	VERSION := $(BRANCH)-$(COMMIT)
 endif
 MOD := -mod=vendor
 export G111MODULE=on
-ARCH := $(shell uname -m)
 PKGS := $(shell go list ./... | grep -v /vendor)
 GOPLUGINS := $(shell go list ./... | grep -v /vendor | grep plugins | awk -F'/' '{print $$4"/"$$5}')
 PLUGINS := $(shell echo plugins/*)
@@ -79,6 +79,6 @@ package:
 .PHONY: build
 build:
 	mkdir -p bin/plugins
-	go build -v ${LDFLAGS} -o bin/gogios-$(VERSION) ${MOD}
+	go build -v -ldflags "$(LDFLAGS)" -o bin/gogios-$(VERSION) ${MOD} ./cmd/gogios
 	for p in ${GOPLUGINS}; do go build -o bin/$$p ./$$p; done
 	for f in ${PLUGINS}; do cp "$$f"/* bin/plugins; done
