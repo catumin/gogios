@@ -1,4 +1,6 @@
 VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT := $(shell git rev-parse --short HEAD)
 DESTDIR :=
 
 LDFLAGS := $(LDFLAGS)-gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -X main.commit=$(COMMIT) -X main.branch=$(BRANCH) 
