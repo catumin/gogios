@@ -15,7 +15,7 @@ import (
 type Telegram struct {
 	API             string
 	Chats           []string `toml:"chats"`
-	ResponseTimeout time.Duration
+	ResponseTimeout helpers.Duration
 
 	// HTTP Client
 	client *http.Client
@@ -94,12 +94,12 @@ func (t *Telegram) Notify(check, time, output string, status bool) error {
 }
 
 func (t *Telegram) createHTTPClient() (*http.Client, error) {
-	if t.ResponseTimeout < time.Second {
-		t.ResponseTimeout = time.Second * 5
+	if t.ResponseTimeout.Duration < time.Second {
+		t.ResponseTimeout.Duration = time.Second * 5
 	}
 
 	client := &http.Client{
-		Timeout: t.ResponseTimeout,
+		Timeout: t.ResponseTimeout.Duration,
 	}
 
 	return client, nil

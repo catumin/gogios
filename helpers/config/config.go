@@ -24,7 +24,7 @@ type Config struct {
 // OptionsConfig - General system options such as check interval
 type OptionsConfig struct {
 	// Interval on which to check in minutes
-	Interval int `toml:"interval"`
+	Interval int
 	// Verbose controls whether check output will be logged
 	Verbose bool
 }
@@ -32,26 +32,27 @@ type OptionsConfig struct {
 // WebOptionsConfig - Options related to the web interface
 type WebOptionsConfig struct {
 	// IP to listen on
-	IP string `toml:"IP"`
+	IP string
 	// Port to use for non-SSL connections
-	HTTPPort int `toml:"HTTPPort"`
+	HTTPPort int
 	// Port to use for SSL connections
 	HTTPSPort int
 
 	// TLS settings. Cert, key, and whether to listen on SSL
-	TLSCert string `toml:"TLSCert"`
-	TLSKey  string `toml:"TLSKey"`
-	SSL     bool   `toml:"SSL"`
+	TLSCert string
+	TLSKey  string
+	SSL     bool
 	// Redirect to SSL
-	Redirect bool `toml:"redirect"`
+	Redirect bool
 	// Allow the REST API to be accessible
-	ExposeAPI bool `toml:"exposeAPI"`
+	ExposeAPI bool
 	// IP to listen for API connections on
 	APIIP string
 	// Port to listen for API connections on
-	APIPort int `toml:"APIPort"`
+	APIPort int
 }
 
+// NewConfig provides base config options that get replaced by the TOML options
 func NewConfig() *Config {
 	c := &Config{
 		Options: &OptionsConfig{
@@ -92,7 +93,7 @@ func (c *Config) GetConfig(config string) error {
 	if val, ok := tbl.Fields["options"]; ok {
 		subTable, ok := val.(*ast.Table)
 		if !ok {
-			return fmt.Errorf("%s: invalid config", config)
+			return fmt.Errorf("%s: invalid configuration", config)
 		}
 		if err = toml.UnmarshalTable(subTable, c.Options); err != nil {
 			log.Printf("Could not parse [options] config\n")
@@ -112,23 +113,28 @@ func (c *Config) GetConfig(config string) error {
 	}
 
 	// Notifiers
-	for _, val := range tbl.Fields {
+	for name, val := range tbl.Fields {
 		subTable, ok := val.(*ast.Table)
 		if !ok {
 			return fmt.Errorf("%s: invalid config", config)
 		}
 
-		for notifierName, val := range subTable.Fields {
-			switch notifierSubTable := val.(type) {
-			case []*ast.Table:
-				for _, t := range notifierSubTable {
-					if err = c.addNotifier(notifierName, t); err != nil {
-						return fmt.Errorf("Error parsing %s, %s", config, err)
+		switch name {
+		case "notifiers":
+			for notifierName, val := range subTable.Fields {
+				switch notifierSubTable := val.(type) {
+				case []*ast.Table:
+					for _, t := range notifierSubTable {
+						if err = c.addNotifier(notifierName, t); err != nil {
+							return fmt.Errorf("Error parsing %s, %s", config, err)
+						}
 					}
+				default:
+					return fmt.Errorf("Unsupported config format: %s, file %s", notifierName, config)
 				}
-			default:
-				return fmt.Errorf("Unsupported config format: %s, file %s", notifierName, config)
 			}
+		default:
+			fmt.Println("Unrecognized config option: %", name)
 		}
 	}
 

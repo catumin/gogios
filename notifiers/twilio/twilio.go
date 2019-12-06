@@ -17,7 +17,7 @@ type Twilio struct {
 	Token           string
 	TwilioNumber    string
 	SendTo          string
-	ResponseTimeout time.Duration
+	ResponseTimeout helpers.Duration
 
 	// HTTP Client
 	client *http.Client
@@ -101,12 +101,12 @@ func (t *Twilio) Notify(check, time, output string, status bool) error {
 }
 
 func (t *Twilio) createHTTPClient() (*http.Client, error) {
-	if t.ResponseTimeout < time.Second {
-		t.ResponseTimeout = time.Second * 5
+	if t.ResponseTimeout.Duration < time.Second {
+		t.ResponseTimeout.Duration = time.Second * 5
 	}
 
 	client := &http.Client{
-		Timeout: t.ResponseTimeout,
+		Timeout: t.ResponseTimeout.Duration,
 	}
 
 	return client, nil

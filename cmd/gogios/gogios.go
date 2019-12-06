@@ -60,7 +60,7 @@ func main() {
 	}
 
 	// Set the PATH that will be used by checks
-	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin")
+	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin:/usr/lib/gogios/plugins")
 
 	// Do a round of checks immediately...
 	check(time.Now(), conf)
