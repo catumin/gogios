@@ -85,7 +85,7 @@ func (t *Telegram) Notify(check, time, output string, status bool) error {
 				return
 			}
 
-			helpers.Log.Println("Telegram message posted: %s", resp.Status)
+			helpers.Log.Printf("Telegram message posted: %s", resp.Status)
 		}(addr)
 	}
 

@@ -132,23 +132,6 @@ func check(t time.Time, conf *config.Config) {
 			curr[i].Good = false
 		}
 
-		// Send out notifications if requested
-		//if len(prev) > i && curr[i].Good != prev[i].Good {
-		//	if conf.Telegram.API != "" {
-		//		err = notifiers.TelegramMessage(conf.Telegram.API, conf.Telegram.Chat, curr[i].Title, curr[i].Asof, output, curr[i].Good)
-		//		if err != nil {
-		//			helpers.Log.Println(err.Error())
-		//		}
-		//	}
-
-		//	if conf.Twilio.Token != "" {
-		//		err = notifiers.TwilioMessage(conf.Twilio.SID, conf.Twilio.Token, conf.Twilio.TwilioNumber, conf.Twilio.SendTo, curr[i].Title, curr[i].Asof, output, curr[i].Good)
-		//		if err != nil {
-		//			helpers.Log.Println(err.Error())
-		//		}
-		//	}
-		//}
-
 		if len(prev) > i && curr[i].Good != prev[i].Good {
 			for _, notifier := range conf.Notifiers {
 				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, output, curr[i].Good)
