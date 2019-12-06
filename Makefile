@@ -2,11 +2,12 @@ VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git rev-parse --short HEAD)
 
-LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)'
+LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow
 ifdef VERSION
-	LDFLAGS += -X main.version=$(VERSION)
+	LDFLAGS += -ldflags '-s -w -X main.commit=$(COMMIT) -X main.branch=$(BRANCH) -X main.version=$(VERSION)'
 else
 	VERSION := $(BRANCH)-$(COMMIT)
+	LDFLAGS += -ldflags '-s -w -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)'
 endif
 MOD := -mod=vendor
 export G111MODULE=on
