@@ -2,7 +2,7 @@ VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git rev-parse --short HEAD)
 
-LDFLAGS := $(LDFLAGS) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH) 
+LDFLAGS := -gcflags=all=-trimpath=${PWD} -asmflags=all=-trimpath=${PWD} -ldflags=-extldflags=-zrelro -ldflags=-extldflags=-znow -ldflags '-s -w -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)'
 ifdef VERSION
 	LDFLAGS += -X main.version=$(VERSION)
 else
@@ -79,6 +79,6 @@ package:
 .PHONY: build
 build:
 	mkdir -p bin/plugins
-	go build -v -ldflags "$(LDFLAGS)" -o bin/gogios-$(VERSION) ${MOD} ./cmd/gogios
+	go build -v ${LDFLAGS} -o bin/gogios-$(VERSION) ${MOD} ./cmd/gogios
 	for p in ${GOPLUGINS}; do go build -o bin/$$p ./$$p; done
 	for f in ${PLUGINS}; do cp "$$f"/* bin/plugins; done

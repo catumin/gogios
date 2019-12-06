@@ -132,6 +132,7 @@ func check(t time.Time, conf *config.Config) {
 			curr[i].Good = false
 		}
 
+		// Send out notifications through all enabled notifiers
 		if len(prev) > i && curr[i].Good != prev[i].Good {
 			for _, notifier := range conf.Notifiers {
 				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, output, curr[i].Good)
