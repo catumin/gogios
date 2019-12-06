@@ -10,7 +10,7 @@
   {
     "id": "2",
     "title": "SSH",
-    "command": "/usr/lib/gingertechengine/plugins/check-ssh -host 123.123.123.123 -password scoringengine -user scoringengine",
+    "command": "/usr/lib/gogios/plugins/check-ssh -host 123.123.123.123 -password scoringengine -user scoringengine",
     "expected": "Successful login",
     "good": false,
     "asof": ""
@@ -26,7 +26,7 @@
   {
     "id": "4",
     "title": "DNS",
-    "command": "/usr/lib/gingertechengine/plugins/check-dns -domain angrysysadmins.tech -record A -server 123.123.123.123",
+    "command": "/usr/lib/gogios/plugins/check-dns -domain angrysysadmins.tech -record A -server 123.123.123.123",
     "expected": "45.77.71.224",
     "good": false,
     "asof": ""
@@ -34,7 +34,7 @@
   {
     "id": "5",
     "title": "FTP",
-    "command": "/usr/lib/gingertechengine/plugins/check-ftp -host 123.123.123.123",
+    "command": "/usr/lib/gogios/plugins/check-ftp -host 123.123.123.123",
     "expected": "Successful connection",
     "good": false,
     "asof": ""
@@ -42,7 +42,7 @@
   {
     "id": "6",
     "title": "Host Alive",
-    "command": "/usr/lib/gingertechengine/plugins/check-host-alive -host 123.123.123.123",
+    "command": "/usr/lib/gogios/plugins/check-host-alive -host 123.123.123.123",
     "expected": "Successful connection",
     "good": false,
     "asof": ""
@@ -50,7 +50,7 @@
   {
     "id": "7",
     "title": "MySQL",
-    "command": "/usr/lib/gingertechengine/plugins/check-mysql -host 123.123.123.123 -user username -password password123 -database dbname",
+    "command": "/usr/lib/gogios/plugins/check-mysql -host 123.123.123.123 -user username -password password123 -database dbname",
     "expected": "Successful connection",
     "good": false,
     "asof": ""
@@ -58,7 +58,7 @@
   {
     "id": "8",
     "title": "TCP Port",
-    "command": "/usr/lib/gingertechengine/plugins/check-tcp-port 123.123.123.123 80",
+    "command": "/usr/lib/gogios/plugins/check-tcp-port 123.123.123.123 80",
     "expected": "Success",
     "good": false,
     "asof": ""

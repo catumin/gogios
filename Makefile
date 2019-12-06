@@ -44,34 +44,34 @@ lint:
 
 .PHONY: install
 install:
-	install -d -m 644 $(DESTDIR)/var/log/gingertechnology
-	install -d -m 664 $(DESTDIR)/etc/gingertechengine
-	install -d -m 775 $(DESTDIR)/usr/lib/gingertechengine/plugins
+	install -d -m 644 $(DESTDIR)/var/log/gogios
+	install -d -m 664 $(DESTDIR)/etc/gogios
+	install -d -m 775 $(DESTDIR)/usr/lib/gogios/plugins
 	install -d $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/usr/lib/systemd/system
-	for d in $$(find web/views/ -type d); do install -d -m 764 $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f3-); done
-	for f in $$(find web/views/ -type f); do install -D --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f3-); done
-	install -d -m 764 $(DESTDIR)/opt/gingertechengine/js/output
-	install -T -m 764 package_files/example.json $(DESTDIR)/opt/gingertechengine/js/current.json
-	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
-	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
+	for d in $$(find web/views/ -type d); do install -d -m 764 $(DESTDIR)/opt/gogios/$$(echo $$d | cut -d"/" -f3-); done
+	for f in $$(find web/views/ -type f); do install -D --mode 764 "$$f" $(DESTDIR)/opt/gogios/$$(echo $$f | cut -d"/" -f3-); done
+	install -d -m 764 $(DESTDIR)/opt/gogios/js/output
+	install -T -m 764 package_files/example.json $(DESTDIR)/opt/gogios/js/current.json
+	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gogios/plugins
+	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gogios
 	install -o root -g root -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
 	install -o root -g root -T -m 755 scripts/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
 	install -o root -g root -T -m 755 bin/gogios-$(VERSION) $(DESTDIR)/usr/bin/gogios
 
 .PHONY: package
 package:
-	install -d $(DESTDIR)/var/log/gingertechnology
-	install -d $(DESTDIR)/etc/gingertechengine
-	install -d $(DESTDIR)/usr/lib/gingertechengine/plugins
+	install -d $(DESTDIR)/var/log/gogios
+	install -d $(DESTDIR)/etc/gogios
+	install -d $(DESTDIR)/usr/lib/gogios/plugins
 	install -d $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/usr/lib/systemd/system
-	for d in $$(find web/views/ -type d); do install -d $(DESTDIR)/opt/gingertechengine/$$(echo $$d | cut -d"/" -f3-); done
-	for f in $$(find web/views/ -type f); do install --mode 764 "$$f" $(DESTDIR)/opt/gingertechengine/$$(echo $$f | cut -d"/" -f3-); done
-	install -d $(DESTDIR)/opt/gingertechengine/js/output
-	touch $(DESTDIR)/opt/gingertechengine/js/output/.keep
-	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gingertechengine/plugins
-	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gingertechengine
+	for d in $$(find web/views/ -type d); do install -d $(DESTDIR)/opt/gogios/$$(echo $$d | cut -d"/" -f3-); done
+	for f in $$(find web/views/ -type f); do install --mode 764 "$$f" $(DESTDIR)/opt/gogios/$$(echo $$f | cut -d"/" -f3-); done
+	install -d $(DESTDIR)/opt/gogios/js/output
+	touch $(DESTDIR)/opt/gogios/js/output/.keep
+	install -m 775 bin/plugins/* $(DESTDIR)/usr/lib/gogios/plugins
+	install -m 664 package_files/{example.json,gogios.sample.toml,nginx_example.conf} $(DESTDIR)/etc/gogios
 	install -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
 	install -T -m 755 scripts/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
 	install -T -m 755 bin/gogios-$(VERSION) $(DESTDIR)/usr/bin/gogios

@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	config_file = flag.String("config", "/etc/gingertechengine/gogios.toml", "Config file to use")
+	config_file = flag.String("config", "/etc/gogios/gogios.toml", "Config file to use")
 	sample_conf = flag.Bool("sample_conf", false, "Print a sample config file to stdout")
 )
 
@@ -70,7 +70,7 @@ func main() {
 
 func check(t time.Time, conf *config.Config) {
 	// Read the raw check list into memory
-	raw, err := ioutil.ReadFile("/etc/gingertechengine/checks.json")
+	raw, err := ioutil.ReadFile("/etc/gogios/checks.json")
 	if err != nil {
 		helpers.Log.Println("Check file could not be read, error return:")
 		helpers.Log.Println(err.Error())
@@ -87,8 +87,8 @@ func check(t time.Time, conf *config.Config) {
 	}
 
 	// Copy checks.json to current.json if it does not exist
-	if _, err := os.Stat("/opt/gingertechengine/js/current.json"); os.IsNotExist(err) {
-		err = helpers.Copy("/etc/gingertechengine/checks.json", "/opt/gingertechengine/js/current.json")
+	if _, err := os.Stat("/opt/gogios/js/current.json"); os.IsNotExist(err) {
+		err = helpers.Copy("/etc/gogios/checks.json", "/opt/gogios/js/current.json")
 		if err != nil {
 			helpers.Log.Println("Could not copy checks template to current.json, error return:")
 			helpers.Log.Println(err.Error())
@@ -96,14 +96,14 @@ func check(t time.Time, conf *config.Config) {
 	}
 
 	// Copy the check values from the previous round of checks to a different file...
-	err = helpers.Copy("/opt/gingertechengine/js/current.json", "/opt/gingertechengine/js/prev.json")
+	err = helpers.Copy("/opt/gogios/js/current.json", "/opt/gogios/js/prev.json")
 	if err != nil {
 		helpers.Log.Println("Could not create copy of current check states, error return:")
 		helpers.Log.Println(err.Error())
 	}
 
 	// ... And then use that to set the prev variable to the old results
-	raw, err = ioutil.ReadFile("/opt/gingertechengine/js/prev.json")
+	raw, err = ioutil.ReadFile("/opt/gogios/js/prev.json")
 	if err != nil {
 		helpers.Log.Println("Previous check file could not be read, error return:")
 		helpers.Log.Println(err.Error())
@@ -147,7 +147,7 @@ func check(t time.Time, conf *config.Config) {
 		//	}
 		//}
 
-		err = helpers.WriteStringToFile("/opt/gingertechengine/js/output/"+curr[i].Title, output)
+		err = helpers.WriteStringToFile("/opt/gogios/js/output/"+curr[i].Title, output)
 		if err != nil {
 			helpers.Log.Printf("Output for check %s could not be written to output file. Error return: %s", curr[i].Title, err.Error())
 		}
@@ -155,18 +155,18 @@ func check(t time.Time, conf *config.Config) {
 		helpers.Log.Println("Check " + curr[i].Title + " return: \n" + output)
 
 		if conf.Options.Verbose {
-			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
-			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", "Output: \n"+output)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+output)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
 		} else {
-			err = helpers.AppendStringToFile("/var/log/gingertechnology/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
@@ -175,7 +175,7 @@ func check(t time.Time, conf *config.Config) {
 	}
 
 	currentStatus, _ := json.Marshal(curr)
-	err = ioutil.WriteFile("/opt/gingertechengine/js/current.json", currentStatus, 0644)
+	err = ioutil.WriteFile("/opt/gogios/js/current.json", currentStatus, 0644)
 	if err != nil {
 		helpers.Log.Println("Result check file could not be written, error return:")
 		helpers.Log.Println(err.Error())

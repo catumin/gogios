@@ -13,7 +13,7 @@ var (
 )
 
 func init() {
-	logPath := "/var/log/gingertechnology/service_check.log"
+	logPath := "/var/log/gogios/service_check.log"
 
 	err := Copy(logPath, logPath+time.Now().Format("20060102150405"))
 	if err != nil {

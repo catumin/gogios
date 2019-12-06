@@ -129,7 +129,7 @@ def parse_to_json(data):
     json_writer = []
 
     for item in data:
-        json_writer.append({"title": item[0] + " " + item[5], "command": "/usr/lib/gingertechengine/plugins/check-tcp-port " +
+        json_writer.append({"title": item[0] + " " + item[5], "command": "/usr/lib/gogios/plugins/check-tcp-port " +
                             item[0] + " " + item[4], "expected": "Success", "good": "false", "asof": ""})
         print(item)
 

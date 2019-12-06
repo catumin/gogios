@@ -76,9 +76,9 @@ You will need to start and enable the service with
 sudo systemctl enable --now gogios
 ```
 
-The file that checks are pulled from is in /etc/gingertechengine, as well as an example nginx reverse proxy config file.
+The file that checks are pulled from is in /etc/gogios, as well as an example nginx reverse proxy config file.
 
-After installing Gogios, you can configure it at /etc/gingertechengine/gogios.toml.
+After installing Gogios, you can configure it at /etc/gogios/gogios.toml.
 
 ### Telegram
 

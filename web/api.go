@@ -31,7 +31,7 @@ func API(conf *config.Config) {
 }
 
 func getCurrentJSON() []status {
-	raw, err := ioutil.ReadFile("/opt/gingertechengine/js/current.json")
+	raw, err := ioutil.ReadFile("/opt/gogios/js/current.json")
 	if err != nil {
 		helpers.Log.Println("Could not open current.json")
 		helpers.Log.Println(err.Error())

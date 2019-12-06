@@ -24,7 +24,7 @@ type Config struct {
 // OptionsConfig - General system options such as check interval
 type OptionsConfig struct {
 	// Interval on which to check in minutes
-	Interval int
+	Interval int `toml:"interval"`
 	// Verbose controls whether check output will be logged
 	Verbose bool
 }
@@ -32,24 +32,24 @@ type OptionsConfig struct {
 // WebOptionsConfig - Options related to the web interface
 type WebOptionsConfig struct {
 	// IP to listen on
-	IP string
+	IP string `toml:"IP"`
 	// Port to use for non-SSL connections
-	HTTPPort int
+	HTTPPort int `toml:"HTTPPort"`
 	// Port to use for SSL connections
 	HTTPSPort int
 
 	// TLS settings. Cert, key, and whether to listen on SSL
-	TLSCert string
-	TLSKey  string
-	SSL     bool
+	TLSCert string `toml:"TLSCert"`
+	TLSKey  string `toml:"TLSKey"`
+	SSL     bool   `toml:"SSL"`
 	// Redirect to SSL
-	Redirect bool
+	Redirect bool `toml:"redirect"`
 	// Allow the REST API to be accessible
-	ExposeAPI bool
+	ExposeAPI bool `toml:"exposeAPI"`
 	// IP to listen for API connections on
 	APIIP string
 	// Port to listen for API connections on
-	APIPort int
+	APIPort int `toml:"APIPort"`
 }
 
 func NewConfig() *Config {
@@ -81,12 +81,12 @@ func NewConfig() *Config {
 func (c *Config) GetConfig(config string) error {
 	data, err := ioutil.ReadFile(config)
 	if err != nil {
-		return fmt.Errorf("Error loading %s, %s", config, err)
+		return fmt.Errorf("Read error %s, %s", config, err)
 	}
 
 	tbl, err := toml.Parse(data)
 	if err != nil {
-		return fmt.Errorf("Error parsing %s, %s", config, err)
+		return fmt.Errorf("Parse error %s, %s", config, err)
 	}
 
 	if val, ok := tbl.Fields["options"]; ok {
@@ -100,13 +100,13 @@ func (c *Config) GetConfig(config string) error {
 		}
 	}
 
-	if val, ok := tbl.Fields["webOptions"]; ok {
+	if val, ok := tbl.Fields["web_options"]; ok {
 		subTable, ok := val.(*ast.Table)
 		if !ok {
 			return fmt.Errorf("%s: invalid config", config)
 		}
 		if err = toml.UnmarshalTable(subTable, c.WebOptions); err != nil {
-			log.Printf("Could not parse [webOptions] config\n")
+			log.Printf("Could not parse [web_options] config\n")
 			return fmt.Errorf("Error parsing %s, %s", config, err)
 		}
 	}
@@ -151,30 +151,34 @@ var header = `# Options for Gogios
 
 `
 
-var optionsConfig = `[options]
-# How often to run checks in minutes
-interval = 3
-# Verbose logging. true or false
-verbose = false
+var optionsConfig = `
+[options]
+  # How often to run checks in minutes
+  interval = 3
+  # Verbose logging. true or false
+  verbose = false
 
 `
 
-var webConfig = `[webOptions]
-# Change IP to 0.0.0.0 to listen on all interfaces
-IP = "127.0.0.1"
-HTTPPort = 8411
-HTTPSPort = 8412
-# Should the website be hosted on HTTPS
-SSL = false
-# Redirect from HTTP to HTTPS
-redirect = false
-# Path to TLS cert and key for HTTPS
-TLSCert = ""
-TLSKey = ""
+var webConfig = `
+[web_options]
+  # Change IP to 0.0.0.0 to listen on all interfaces
+  IP = "127.0.0.1"
+  HTTPPort = 8411
+  HTTPSPort = 8412
 
-exposeAPI = true
-APIIP = "0.0.0.0"
-APIPort = 8413
+  # Should the website be hosted on HTTPS
+  SSL = false
+  # Redirect from HTTP to HTTPS
+  redirect = false
+
+  # Path to TLS cert and key for HTTPS
+  TLSCert = ""
+  TLSKey = ""
+
+  exposeAPI = true
+  APIIP = "0.0.0.0"
+  APIPort = 8413
 
 `
 
