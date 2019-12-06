@@ -1,41 +1,64 @@
 # Options for Gogios
 # https://github.com/bkasin/gogios
 # https://angrysysadmins.tech
+
+
 [options]
-# How often to run checks in minutes
-interval = 3
-# Verbose logging. true or false
-verbose = false
+  # How often to run checks in minutes
+  interval = 3
+  # Verbose logging. true or false
+  verbose = false
 
-[webOptions]
-IP = "127.0.0.1"
-HTTPPort = 8411
-HTTPSPort = 8412
-# Should the website be hosted on HTTPS
-SSL = false
-# Redirect from HTTP to HTTPS
-redirect = false
-# Path to TLS cert and key for HTTPS
-TLSCert = ""
-TLSKey = ""
 
-# Telegram is an open source, secure chatting application
-# https://telegram.org/
-# https://github.com/telegramdesktop
-[telegram]
-# Telegram bot API key
-api = ""
-# Chat to post to, usually a negative number for groups and a positive one for direct
-chat = ""
+[web_options]
+  # Change IP to 0.0.0.0 to listen on all interfaces
+  IP = "127.0.0.1"
+  HTTPPort = 8411
+  HTTPSPort = 8412
 
-# Twilio is a service that allows for sending SMS messages
-# https://www.twilio.com
-[twilio]
-# Account SID
-sid = ""
-# Account auth token
-token = ""
-# Phone number for your Twilio account
-twilioNumber = ""
-# Phone number that should be texted with the notification
-sendTo = ""
+  # Should the website be hosted on HTTPS
+  SSL = false
+  # Redirect from HTTP to HTTPS
+  redirect = false
+
+  # Path to TLS cert and key for HTTPS
+  TLSCert = ""
+  TLSKey = ""
+
+  exposeAPI = true
+  APIIP = "0.0.0.0"
+  APIPort = 8413
+
+
+###########################
+#
+# Notifiers
+#
+###########################
+
+
+# # Send a notification to a Telegram channel using a bot when a check changes states
+# [[notifiers.telegram]]
+#   ## Telegram bot API key
+#   api = ""
+#   ## Chat to post to, usually a negative number for groups and a positive one for direct
+#   chats = [""]
+#
+#   ## HTTP response timeout (default: 10s)
+#   response_timeout = "10s"
+
+
+# # Send a text message to a phone number using Twilio's REST API
+# [[notifiers.twilio]]
+#   ## Account SID
+#   sid = ""
+#   ## Account auth token
+#   token = ""
+#   ## Phone number for your Twilio account
+#   twilioNumber = ""
+#   ## Phone number that should be texted with the notification
+#   sendTo = ""
+#
+#   ## HTTP response timeout (default: 10s)
+#   response_timeout = "10s"
+

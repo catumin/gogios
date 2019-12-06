@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/bkasin/gogios/helpers"
+	"github.com/bkasin/gogios/helpers/config"
 )
 
 // Have the page refresh default to 180. Gets set in ServePage
@@ -23,7 +24,7 @@ func httpsRedirect(w http.ResponseWriter, r *http.Request) {
 // renderTemplate renders page after passing some data to the HTML template
 func renderChecks(w http.ResponseWriter, r *http.Request) {
 	// Load template from disk
-	tmpl := template.Must(template.ParseFiles("/opt/gingertechengine/checks.html"))
+	tmpl := template.Must(template.ParseFiles("/opt/gogios/checks.html"))
 	// Inject data into template
 	data := refresh * 60
 	helpers.Log.Println("Checks page accessed")
@@ -31,10 +32,10 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServePage hosts a server based on options from the config file
-func ServePage(conf helpers.Config) {
-	refresh = conf.Options.Interval
+func ServePage(conf *config.Config) {
+	refresh = int(conf.Options.Interval.Duration.Minutes())
 	// Serve static files while preventing directory listing
-	fs := http.FileServer(http.Dir("/opt/gingertechengine/"))
+	fs := http.FileServer(http.Dir("/opt/gogios/"))
 	http.Handle("/", fs)
 	http.HandleFunc("/checks", renderChecks)
 

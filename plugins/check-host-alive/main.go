@@ -24,7 +24,7 @@ func SendPing(target string, threshold, count int) (bool, error) {
 		fmt.Println("If you receive a privilege error, try either allowing unprivileged UDP ping with:")
 		fmt.Println(`sudo sysctl -w net.ipv4.ping_group_range="0   2147483647"	`)
 		fmt.Println("Or by allowing just this binary to bind to raw sockets with:")
-		fmt.Println(`setcap cap_net_raw=+ep /usr/lib/gingertechengine/plugins/check-host-alive`)
+		fmt.Println(`setcap cap_net_raw=+ep /usr/lib/gogios/plugins/check-host-alive`)
 		fmt.Println("Or ignore this problem and do a counted ping. It won't give stats but it will work:")
 		fmt.Println(`ping -c 3 $target`)
 		panic(err)
@@ -56,7 +56,7 @@ func main() {
 		fmt.Println("If you receive a privilege error, try either allowing unprivileged UDP ping with:")
 		fmt.Println(`sudo sysctl -w net.ipv4.ping_group_range="0   2147483647"	`)
 		fmt.Println("Or by allowing just this binary to bind to raw sockets with:")
-		fmt.Println(`setcap cap_net_raw=+ep /usr/lib/gingertechengine/plugins/check-host-alive`)
+		fmt.Println(`setcap cap_net_raw=+ep /usr/lib/gogios/plugins/check-host-alive`)
 		panic(err)
 	}
 }
