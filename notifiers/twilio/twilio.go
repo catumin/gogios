@@ -15,8 +15,8 @@ import (
 type Twilio struct {
 	SID             string
 	Token           string
-	TwilioNumber    string
-	SendTo          string
+	TwilioNumber    string `toml:"twilio_number"`
+	SendTo          string `toml:"send_to"`
 	ResponseTimeout helpers.Duration
 
 	// HTTP Client
@@ -29,9 +29,9 @@ var sampleConfig = `
   ## Account auth token
   token = ""
   ## Phone number for your Twilio account
-  twilioNumber = ""
+  twilio_number = ""
   ## Phone number that should be texted with the notification
-  sendTo = ""
+  send_to = ""
 
   ## HTTP response timeout (default: 10s)
   response_timeout = "10s"

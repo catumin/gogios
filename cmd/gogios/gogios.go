@@ -17,13 +17,13 @@ import (
 )
 
 var (
-	config_file = flag.String("config", "/etc/gogios/gogios.toml", "Config file to use")
-	sample_conf = flag.Bool("sample_conf", false, "Print a sample config file to stdout")
+	configFile = flag.String("config", "/etc/gogios/gogios.toml", "Config file to use")
+	sampleConf = flag.Bool("sample_conf", false, "Print a sample config file to stdout")
 )
 
 // Check - struct to format checks
 type Check struct {
-	ID       string `json:id`
+	ID       string `json:"id"`
 	Title    string `json:"title"`
 	Command  string `json:"command"`
 	Expected string `json:"expected"`
@@ -35,7 +35,7 @@ type Check struct {
 func main() {
 	flag.Parse()
 
-	if *sample_conf {
+	if *sampleConf {
 		config.PrintSampleConfig()
 		os.Exit(0)
 	}
@@ -45,11 +45,13 @@ func main() {
 
 	// Read and print the config file
 	conf := config.NewConfig()
-	err := conf.GetConfig(*config_file)
+	err := conf.GetConfig(*configFile)
 	if err != nil {
 		helpers.Log.Println("Check file could not be read, error return:")
 		helpers.Log.Println(err.Error())
 	}
+
+	fmt.Println(conf.NotifierNames())
 
 	// Start serving the website
 	web.ServePage(conf)
@@ -65,7 +67,7 @@ func main() {
 	// Do a round of checks immediately...
 	check(time.Now(), conf)
 	// ... and then every $interval
-	doEvery(time.Duration(conf.Options.Interval)*time.Minute, check, conf)
+	doEvery(conf.Options.Interval.Duration, check, conf)
 }
 
 func check(t time.Time, conf *config.Config) {
@@ -146,6 +148,15 @@ func check(t time.Time, conf *config.Config) {
 		//		}
 		//	}
 		//}
+
+		if len(prev) > i && curr[i].Good != prev[i].Good {
+			for _, notifier := range conf.Notifiers {
+				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, output, curr[i].Good)
+				if err != nil {
+					helpers.Log.Println(err.Error())
+				}
+			}
+		}
 
 		err = helpers.WriteStringToFile("/opt/gogios/js/output/"+curr[i].Title, output)
 		if err != nil {

@@ -6,7 +6,9 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/models"
 	"github.com/bkasin/gogios/notifiers"
 	"github.com/influxdata/toml"
@@ -24,7 +26,7 @@ type Config struct {
 // OptionsConfig - General system options such as check interval
 type OptionsConfig struct {
 	// Interval on which to check in minutes
-	Interval int
+	Interval helpers.Duration
 	// Verbose controls whether check output will be logged
 	Verbose bool
 }
@@ -34,29 +36,29 @@ type WebOptionsConfig struct {
 	// IP to listen on
 	IP string
 	// Port to use for non-SSL connections
-	HTTPPort int
+	HTTPPort int `toml:"http_port"`
 	// Port to use for SSL connections
-	HTTPSPort int
+	HTTPSPort int `toml:"https_port"`
 
 	// TLS settings. Cert, key, and whether to listen on SSL
-	TLSCert string
-	TLSKey  string
+	TLSCert string `toml:"tls_cert"`
+	TLSKey  string `toml:"tls_key"`
 	SSL     bool
 	// Redirect to SSL
 	Redirect bool
 	// Allow the REST API to be accessible
-	ExposeAPI bool
+	ExposeAPI bool `toml:"expose_api"`
 	// IP to listen for API connections on
-	APIIP string
+	APIIP string `toml:"api_ip"`
 	// Port to listen for API connections on
-	APIPort int
+	APIPort int `toml:"api_port"`
 }
 
 // NewConfig provides base config options that get replaced by the TOML options
 func NewConfig() *Config {
 	c := &Config{
 		Options: &OptionsConfig{
-			Interval: 3,
+			Interval: helpers.Duration{Duration: 3 * time.Minute},
 			Verbose:  false,
 		},
 
@@ -93,7 +95,7 @@ func (c *Config) GetConfig(config string) error {
 	if val, ok := tbl.Fields["options"]; ok {
 		subTable, ok := val.(*ast.Table)
 		if !ok {
-			return fmt.Errorf("%s: invalid configuration", config)
+			return fmt.Errorf("%s: invalid config", config)
 		}
 		if err = toml.UnmarshalTable(subTable, c.Options); err != nil {
 			log.Printf("Could not parse [options] config\n")
@@ -120,6 +122,7 @@ func (c *Config) GetConfig(config string) error {
 		}
 
 		switch name {
+		case "options", "web_options":
 		case "notifiers":
 			for notifierName, val := range subTable.Fields {
 				switch notifierSubTable := val.(type) {
@@ -134,7 +137,7 @@ func (c *Config) GetConfig(config string) error {
 				}
 			}
 		default:
-			fmt.Println("Unrecognized config option: %", name)
+			fmt.Printf("Unrecognized config option: %s", name)
 		}
 	}
 
@@ -160,7 +163,7 @@ var header = `# Options for Gogios
 var optionsConfig = `
 [options]
   # How often to run checks in minutes
-  interval = 3
+  interval = "3m"
   # Verbose logging. true or false
   verbose = false
 
@@ -170,8 +173,8 @@ var webConfig = `
 [web_options]
   # Change IP to 0.0.0.0 to listen on all interfaces
   IP = "127.0.0.1"
-  HTTPPort = 8411
-  HTTPSPort = 8412
+  http_port = 8411
+  https_port = 8412
 
   # Should the website be hosted on HTTPS
   SSL = false
@@ -179,12 +182,12 @@ var webConfig = `
   redirect = false
 
   # Path to TLS cert and key for HTTPS
-  TLSCert = ""
-  TLSKey = ""
+  tls_cert = ""
+  tls_key = ""
 
-  exposeAPI = true
-  APIIP = "0.0.0.0"
-  APIPort = 8413
+  expose_api = true
+  api_ip = "0.0.0.0"
+  api_port = 8413
 
 `
 

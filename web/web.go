@@ -33,7 +33,7 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 
 // ServePage hosts a server based on options from the config file
 func ServePage(conf *config.Config) {
-	refresh = conf.Options.Interval
+	refresh = int(conf.Options.Interval.Duration.Minutes())
 	// Serve static files while preventing directory listing
 	fs := http.FileServer(http.Dir("/opt/gogios/"))
 	http.Handle("/", fs)
