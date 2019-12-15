@@ -21,7 +21,7 @@ func httpsRedirect(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// renderTemplate renders page after passing some data to the HTML template
+// renderChecks renders page after passing some data to the HTML template
 func renderChecks(w http.ResponseWriter, r *http.Request) {
 	// Load template from disk
 	tmpl := template.Must(template.ParseFiles("/opt/gogios/checks.html"))

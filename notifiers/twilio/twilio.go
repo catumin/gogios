@@ -56,9 +56,9 @@ func (t *Twilio) Notify(check, time, output string, status bool) error {
 
 	// Build the message
 	if status {
-		message = url.QueryEscape(check + " Status changed to Success as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
+		message = check + " Status changed to Success as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
 	} else {
-		message = url.QueryEscape(check + " Status changed to Fail as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
+		message = check + " Status changed to Fail as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
 	}
 
 	// Create the HTTP Client
