@@ -23,13 +23,15 @@ var (
 
 // Check - struct to format checks
 type Check struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Command  string `json:"command"`
-	Expected string `json:"expected"`
-	Good     bool   `json:"good"`
-	Asof     string `json:"asof"`
-	Output   string `json:"output"`
+	ID         string `json:"id"`
+	Title      string `json:"title"`
+	Command    string `json:"command"`
+	Expected   string `json:"expected"`
+	Good       bool   `json:"good"`
+	GoodCount  int    `json:"good_count"`
+	TotalCount int    `json:"total_count"`
+	Asof       string `json:"asof"`
+	Output     string `json:"output"`
 }
 
 func main() {
@@ -123,14 +125,25 @@ func check(t time.Time, conf *config.Config) {
 		var args = []string{"-c", curr[i].Command}
 		var output = getCommandOutput("/bin/sh", args)
 		var status = "Failed"
+		var goodCount = 0
+		var totalCount = 0
 		curr[i].Asof = time.Now().Format(time.RFC822)
+
+		if len(prev) > i {
+			goodCount = prev[i].GoodCount
+			totalCount = prev[i].TotalCount + 1
+		}
 
 		if strings.Contains(output, curr[i].Expected) {
 			curr[i].Good = true
 			status = "Success"
+			goodCount++
 		} else if !strings.Contains(output, curr[i].Expected) {
 			curr[i].Good = false
 		}
+
+		curr[i].GoodCount = goodCount
+		curr[i].TotalCount = totalCount
 
 		// Send out notifications through all enabled notifiers
 		if len(prev) > i && curr[i].Good != prev[i].Good {

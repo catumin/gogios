@@ -12,6 +12,10 @@ $(document).ready(function () {
         else if (json[i].good == false) {
           tr.append("<td><font color='red'>Fail</font></td>");
         }
+
+        ratio = Math.round(json[i].good_count / json[i].total_count * 100);
+
+        tr.append("<td>" + ratio + "% Uptime</td>");
         tr.append("<td>" + json[i].asof + "</td>");
         $('table').append(tr);
       }
