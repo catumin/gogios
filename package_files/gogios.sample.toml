@@ -5,14 +5,14 @@
 
 [options]
   # How often to run checks in minutes
-  interval = 3
+  interval = "3m"
   # Verbose logging. true or false
   verbose = false
 
   # Per checkout timeout in seconds
   # If enough checks get stuck it is possible that the
   # next round will start before the previous finishes
-  timeout = 60
+  timeout = "60s"
 
 
 [web_options]
