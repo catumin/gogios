@@ -27,7 +27,7 @@ type Check struct {
 	Title      string `json:"title"`
 	Command    string `json:"command"`
 	Expected   string `json:"expected"`
-	Good       bool   `json:"good"`
+	Status     string `json:"status"`
 	GoodCount  int    `json:"good_count"`
 	TotalCount int    `json:"total_count"`
 	Asof       string `json:"asof"`
@@ -123,7 +123,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	// Iterate through all the checks in the check list
 	for i := 0; i < len(curr); i++ {
 		var output string
-		var status = "Failed"
+		curr[i].Status = "Failed"
 
 		outputChannel := make(chan string, 1)
 		go func() {
@@ -143,24 +143,20 @@ func runChecks(t time.Time, conf *config.Config) {
 		select {
 		case output := <-outputChannel:
 			if strings.Contains(output, curr[i].Expected) {
-				curr[i].Good = true
-				status = "Success"
+				curr[i].Status = "Success"
 				goodCount++
-			} else if !strings.Contains(output, curr[i].Expected) {
-				curr[i].Good = false
 			}
 		case <-time.After(conf.Options.Timeout.Duration):
-			status = "Timed Out"
-			curr[i].Good = false
+			curr[i].Status = "Timed Out"
 		}
 
 		curr[i].GoodCount = goodCount
 		curr[i].TotalCount = totalCount
 
 		// Send out notifications through all enabled notifiers
-		if len(prev) > i && curr[i].Good != prev[i].Good {
+		if len(prev) > i && curr[i].Status != curr[i].Status {
 			for _, notifier := range conf.Notifiers {
-				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, output, curr[i].Good)
+				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, output, curr[i].Status)
 				if err != nil {
 					helpers.Log.Println(err.Error())
 				}
@@ -175,7 +171,7 @@ func runChecks(t time.Time, conf *config.Config) {
 		helpers.Log.Println("Check " + curr[i].Title + " return: \n" + output)
 
 		if conf.Options.Verbose {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+curr[i].Status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
@@ -186,7 +182,7 @@ func runChecks(t time.Time, conf *config.Config) {
 				fmt.Println(err.Error())
 			}
 		} else {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+curr[i].Status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())

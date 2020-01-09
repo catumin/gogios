@@ -174,7 +174,7 @@ var optionsConfig = `
   # Per checkout timeout in seconds
   # If enough checks get stuck it is possible that the
   # next round will start before the previous finishes
-  timeout = 60
+  timeout = "60s"
 
 `
 

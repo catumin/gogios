@@ -45,7 +45,7 @@ func (t *Twilio) Description() string {
 	return "Send a text message to a phone number using Twilio's REST API"
 }
 
-func (t *Twilio) Notify(check, time, output string, status bool) error {
+func (t *Twilio) Notify(check, time, output, status string) error {
 	// Shorten the message if it too long for a URL
 	message := ""
 	tailedOutput := output
@@ -55,11 +55,7 @@ func (t *Twilio) Notify(check, time, output string, status bool) error {
 	}
 
 	// Build the message
-	if status {
-		message = check + " Status changed to Success as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
-	} else {
-		message = check + " Status changed to Fail as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
-	}
+	message = check + " Status changed to " + status + " as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput
 
 	// Create the HTTP Client
 	if t.client == nil {
