@@ -67,12 +67,12 @@ func main() {
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin:/usr/lib/gogios/plugins")
 
 	// Do a round of checks immediately...
-	check(time.Now(), conf)
+	runChecks(time.Now(), conf)
 	// ... and then every $interval
-	doEvery(conf.Options.Interval.Duration, check, conf)
+	doEvery(conf.Options.Interval.Duration, runChecks, conf)
 }
 
-func check(t time.Time, conf *config.Config) {
+func runChecks(t time.Time, conf *config.Config) {
 	// Read the raw check list into memory
 	raw, err := ioutil.ReadFile("/etc/gogios/checks.json")
 	if err != nil {
@@ -122,9 +122,15 @@ func check(t time.Time, conf *config.Config) {
 
 	// Iterate through all the checks in the check list
 	for i := 0; i < len(curr); i++ {
-		var args = []string{"-c", curr[i].Command}
-		var output = getCommandOutput("/bin/sh", args)
+		var output string
 		var status = "Failed"
+
+		outputChannel := make(chan string, 1)
+		go func() {
+			commandReturn := check(curr[i])
+			outputChannel <- commandReturn
+		}()
+
 		var goodCount = 0
 		var totalCount = 0
 		curr[i].Asof = time.Now().Format(time.RFC822)
@@ -134,11 +140,17 @@ func check(t time.Time, conf *config.Config) {
 			totalCount = prev[i].TotalCount + 1
 		}
 
-		if strings.Contains(output, curr[i].Expected) {
-			curr[i].Good = true
-			status = "Success"
-			goodCount++
-		} else if !strings.Contains(output, curr[i].Expected) {
+		select {
+		case output := <-outputChannel:
+			if strings.Contains(output, curr[i].Expected) {
+				curr[i].Good = true
+				status = "Success"
+				goodCount++
+			} else if !strings.Contains(output, curr[i].Expected) {
+				curr[i].Good = false
+			}
+		case <-time.After(conf.Options.Timeout.Duration):
+			status = "Timed Out"
 			curr[i].Good = false
 		}
 
@@ -208,4 +220,11 @@ func doEvery(d time.Duration, f func(time.Time, *config.Config), conf *config.Co
 	for x := range time.Tick(d) {
 		f(x, conf)
 	}
+}
+
+func check(check Check) string {
+	var args = []string{"-c", check.Command}
+	var output = getCommandOutput("/bin/sh", args)
+
+	return output
 }

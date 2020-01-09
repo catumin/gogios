@@ -51,16 +51,6 @@
   },
   {
     "id": "6",
-    "title": "Host Alive",
-    "command": "/usr/lib/gogios/plugins/check-host-alive -host 123.123.123.123",
-    "expected": "Successful connection",
-    "good": false,
-    "good_count": 0,
-    "total_count": 0,
-    "asof": ""
-  },
-  {
-    "id": "7",
     "title": "MySQL",
     "command": "/usr/lib/gogios/plugins/check-mysql -host 123.123.123.123 -user username -password password123 -database dbname",
     "expected": "Successful connection",
@@ -70,7 +60,7 @@
     "asof": ""
   },
   {
-    "id": "8",
+    "id": "7",
     "title": "TCP Port",
     "command": "/usr/lib/gogios/plugins/check-tcp-port 123.123.123.123 80",
     "expected": "Success",

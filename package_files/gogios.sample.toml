@@ -9,6 +9,11 @@
   # Verbose logging. true or false
   verbose = false
 
+  # Per checkout timeout in seconds
+  # If enough checks get stuck it is possible that the
+  # next round will start before the previous finishes
+  timeout = 60
+
 
 [web_options]
   # Change IP to 0.0.0.0 to listen on all interfaces
