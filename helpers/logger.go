@@ -15,7 +15,7 @@ var (
 func init() {
 	logPath := "/var/log/gogios/service_check.log"
 
-	err := Copy(logPath, logPath+time.Now().Format("20060102150405"))
+	err := Copy(logPath, logPath+time.Now().Format(time.RFC822))
 	if err != nil {
 		fmt.Println(err.Error())
 	}

@@ -29,6 +29,9 @@ type OptionsConfig struct {
 	Interval helpers.Duration
 	// Verbose controls whether check output will be logged
 	Verbose bool
+
+	// Timeout for each check
+	Timeout helpers.Duration
 }
 
 // WebOptionsConfig - Options related to the web interface
@@ -60,6 +63,7 @@ func NewConfig() *Config {
 		Options: &OptionsConfig{
 			Interval: helpers.Duration{Duration: 3 * time.Minute},
 			Verbose:  false,
+			Timeout:  helpers.Duration{Duration: 60 * time.Second},
 		},
 
 		WebOptions: &WebOptionsConfig{
@@ -166,6 +170,11 @@ var optionsConfig = `
   interval = "3m"
   # Verbose logging. true or false
   verbose = false
+
+  # Per checkout timeout in seconds
+  # If enough checks get stuck it is possible that the
+  # next round will start before the previous finishes
+  timeout = "60s"
 
 `
 

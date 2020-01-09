@@ -13,10 +13,12 @@ import (
 )
 
 type status struct {
-	ID    string `json:"ID"`
-	Title string `json:"Title"`
-	Good  bool   `json:"good"`
-	Asof  string `json:"asof"`
+	ID         string `json:"ID"`
+	Title      string `json:"Title"`
+	Good       bool   `json:"good"`
+	GoodCount  int    `json:"good_count"`
+	TotalCount int    `json:"total_count"`
+	Asof       string `json:"asof"`
 }
 
 var allChecks []status

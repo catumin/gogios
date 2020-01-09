@@ -39,7 +39,7 @@ func (t *Telegram) Description() string {
 	return "Send a notification to a Telegram channel using a bot when a check changes states"
 }
 
-func (t *Telegram) Notify(check, time, output string, status bool) error {
+func (t *Telegram) Notify(check, time, output, status string) error {
 	var wg sync.WaitGroup
 
 	// Shorten the message if it too long for a URL
@@ -51,11 +51,7 @@ func (t *Telegram) Notify(check, time, output string, status bool) error {
 	}
 
 	// Build the message
-	if status {
-		message = url.QueryEscape(check + " Status changed to Success as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
-	} else {
-		message = url.QueryEscape(check + " Status changed to Fail as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
-	}
+	message = url.QueryEscape(check + " Status changed to " + status + " as of:\n" + time + "\n\nOutput of check was:\n" + tailedOutput)
 
 	// Create the HTTP Client
 	if t.client == nil {

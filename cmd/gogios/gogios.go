@@ -23,13 +23,15 @@ var (
 
 // Check - struct to format checks
 type Check struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Command  string `json:"command"`
-	Expected string `json:"expected"`
-	Good     bool   `json:"good"`
-	Asof     string `json:"asof"`
-	Output   string `json:"output"`
+	ID         string `json:"id"`
+	Title      string `json:"title"`
+	Command    string `json:"command"`
+	Expected   string `json:"expected"`
+	Status     string `json:"status"`
+	GoodCount  int    `json:"good_count"`
+	TotalCount int    `json:"total_count"`
+	Asof       string `json:"asof"`
+	Output     string `json:"output"`
 }
 
 func main() {
@@ -65,12 +67,12 @@ func main() {
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin:/usr/lib/gogios/plugins")
 
 	// Do a round of checks immediately...
-	check(time.Now(), conf)
+	runChecks(time.Now(), conf)
 	// ... and then every $interval
-	doEvery(conf.Options.Interval.Duration, check, conf)
+	doEvery(conf.Options.Interval.Duration, runChecks, conf)
 }
 
-func check(t time.Time, conf *config.Config) {
+func runChecks(t time.Time, conf *config.Config) {
 	// Read the raw check list into memory
 	raw, err := ioutil.ReadFile("/etc/gogios/checks.json")
 	if err != nil {
@@ -120,48 +122,66 @@ func check(t time.Time, conf *config.Config) {
 
 	// Iterate through all the checks in the check list
 	for i := 0; i < len(curr); i++ {
-		var args = []string{"-c", curr[i].Command}
-		var output = getCommandOutput("/bin/sh", args)
-		var status = "Failed"
+		var commandOutput string
+		curr[i].Status = "Failed"
+
+		outputChannel := make(chan string, 1)
+		go func() {
+			commandReturn := check(curr[i])
+			outputChannel <- commandReturn
+		}()
+
+		var goodCount = 0
+		var totalCount = 0
 		curr[i].Asof = time.Now().Format(time.RFC822)
 
-		if strings.Contains(output, curr[i].Expected) {
-			curr[i].Good = true
-			status = "Success"
-		} else if !strings.Contains(output, curr[i].Expected) {
-			curr[i].Good = false
+		if len(prev) > i {
+			goodCount = prev[i].GoodCount
+			totalCount = prev[i].TotalCount + 1
 		}
 
+		select {
+		case output := <-outputChannel:
+			if strings.Contains(output, curr[i].Expected) {
+				curr[i].Status = "Success"
+				goodCount++
+			}
+			commandOutput = output
+		case <-time.After(conf.Options.Timeout.Duration):
+			curr[i].Status = "Timed Out"
+		}
+
+		curr[i].GoodCount = goodCount
+		curr[i].TotalCount = totalCount
+
 		// Send out notifications through all enabled notifiers
-		if len(prev) > i && curr[i].Good != prev[i].Good {
+		if len(prev) > i && curr[i].Status != curr[i].Status {
 			for _, notifier := range conf.Notifiers {
-				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, output, curr[i].Good)
+				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, commandOutput, curr[i].Status)
 				if err != nil {
 					helpers.Log.Println(err.Error())
 				}
 			}
 		}
 
-		err = helpers.WriteStringToFile("/opt/gogios/js/output/"+curr[i].Title, output)
+		err = helpers.WriteStringToFile("/opt/gogios/js/output/"+curr[i].Title, commandOutput)
 		if err != nil {
 			helpers.Log.Printf("Output for check %s could not be written to output file. Error return: %s", curr[i].Title, err.Error())
 		}
 
-		helpers.Log.Println("Check " + curr[i].Title + " return: \n" + output)
-
 		if conf.Options.Verbose {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+curr[i].Status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+output)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+commandOutput)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
 		} else {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+curr[i].Status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
@@ -195,4 +215,11 @@ func doEvery(d time.Duration, f func(time.Time, *config.Config), conf *config.Co
 	for x := range time.Tick(d) {
 		f(x, conf)
 	}
+}
+
+func check(check Check) string {
+	var args = []string{"-c", check.Command}
+	var output = getCommandOutput("/bin/sh", args)
+
+	return output
 }

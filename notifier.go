@@ -5,7 +5,7 @@ type Notifier interface {
 
 	Description() string
 
-	Notify(check, time, output string, status bool) error
+	Notify(check, time, output, status string) error
 }
 
 type Initializer interface {
