@@ -15,7 +15,7 @@ import (
 type status struct {
 	ID         string `json:"ID"`
 	Title      string `json:"Title"`
-	Good       bool   `json:"good"`
+	Status     string `json:"status"`
 	GoodCount  int    `json:"good_count"`
 	TotalCount int    `json:"total_count"`
 	Asof       string `json:"asof"`
