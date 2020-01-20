@@ -52,7 +52,7 @@ install:
 	touch $(DESTDIR)/opt/gogios/js/output/.keep
 	install -m 664 package_files/example.json $(DESTDIR)/etc/gogios
 	install -m 664 package_files/gogios.toml $(DESTDIR)/etc/gogios/gogios.sample.toml
-	install -o root -g root -m 644 package_files/gogios.service $(DESTDIR)/usr/lib/systemd/system
+	install -o root -g root -m 644 scripts/gogios.service $(DESTDIR)/usr/lib/systemd/system
 	install -o root -g root -T -m 755 scripts/gogios-parse-nmap $(DESTDIR)/usr/bin/gogios-parse-nmap
 	install -o root -g root -T -m 755 bin/gogios-$(VERSION) $(DESTDIR)/usr/bin/gogios
 
