@@ -30,6 +30,7 @@ Thumbs.db
 
 # My stuff
 bin/
+build/
 debug/
 *.tar.xz
 *.deb

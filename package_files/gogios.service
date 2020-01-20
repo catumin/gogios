@@ -1,9 +1,0 @@
-[Unit]
-Description=Controls service check engine
-After=network.target
-[Service]
-Type=simple
-User=gogios
-ExecStart=/usr/bin/gogios
-[Install]
-WantedBy=multi-user.target

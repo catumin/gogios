@@ -1,0 +1,16 @@
+[Unit]
+Description=Controls service check engine
+Documentation=https://github.com/BKasin/gogios/wiki
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/gogios
+User=gogios
+ExecStart=/usr/bin/gogios -config /etc/gogios/gogios.toml $
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartForceExitStatus=SIGPIPE
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
