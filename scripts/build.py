@@ -21,6 +21,8 @@ LOG_DIR = "/var/log/gogios"
 SCRIPT_DIR = "/usr/lib/gogios/scripts"
 PLUGIN_DIR = "/usr/lib/gogios/plugins"
 CONFIG_DIR = "/etc/gogios"
+WEB_DIR = "/opt/gogios"
+WEB_OUT_DIR = "/opt/gogios/js/output"
 
 INIT_SCRIPT = "scripts/init.sh"
 SYSTEMD_SCRIPT = "scripts/gogios.service"
@@ -29,10 +31,14 @@ POSTINST_SCRIPT = "scripts/post-install.sh"
 PREINST_SCRIPT = "scripts/pre-install.sh"
 POSTREMOVE_SCRIPT = "scripts/post-remove.sh"
 PREREMOVE_SCRIPT = "scripts/pre-remove.sh"
+WEB_VIEWS = "web/views"
+EXAMPLE_CHECKS = "package_files/example.json"
 
 CONFIGURATION_FILES = [
     CONFIG_DIR + '/gogios.toml',
 ]
+
+NMAP_PARSE = "scripts/gogios-parse-nmap"
 
 # META-PACKAGE VARIABLES
 PACKAGE_LICENSE = "MIT"
@@ -45,6 +51,9 @@ DESCRIPTION = "Simple system to check important services are on remote machines.
 prereqs = ['git', 'go']
 go_vet_command = "go tool vet -composites=true ./"
 optional_prereqs = ['gvm', 'fpm', 'rpmbuild']
+
+# Packages that the final result will recommend on install
+optional_depends = ['nginx']
 
 fpm_common_args = "-f -s dir --log error \
     --vendor {} \
@@ -80,11 +89,11 @@ supported_builds = {
 }
 
 supported_packages = {
-    "linux": ["deb", "rpm", "tar"],
+    "linux": ["deb", "rpm", "pacman", "tar"],
     "freebsd": ["tar"]
 }
 
-next_version = '2.1'
+next_version = '2.2'
 
 
 def print_banner():
@@ -127,13 +136,36 @@ def package_scripts(build_root, config_only=False):
             build_root, SCRIPT_DIR[1:], SYSTEMD_SCRIPT.split('/')[1]))
         os.chmod(os.path.join(
             build_root, SCRIPT_DIR[1:], SYSTEMD_SCRIPT.split('/')[1]), 0o644)
-        #shutil.copyfile(LOGROTATE_SCRIPT, os.path.join(
+        # shutil.copyfile(LOGROTATE_SCRIPT, os.path.join(
         #    build_root, LOGROTATE_DIR[1:], "gogios"))
         #os.chmod(os.path.join(build_root, LOGROTATE_DIR[1:], "gogios"), 0o644)
         shutil.copyfile(DEFAULT_CONFIG, os.path.join(
             build_root, CONFIG_DIR[1:], "gogios.toml"))
         os.chmod(os.path.join(
             build_root, CONFIG_DIR[1:], "gogios.toml"), 0o644)
+        shutil.copy(NMAP_PARSE, os.path.join(
+            build_root, INSTALL_ROOT_DIR[1:], "gogios-parse-nmap"))
+        os.chmod(os.path.join(
+            build_root, INSTALL_ROOT_DIR[1:], "gogios-parse-nmap"), 0o755)
+
+        # Move example.json now as well
+        shutil.copyfile(EXAMPLE_CHECKS, os.path.join(
+            build_root, CONFIG_DIR[1:], "example.json"))
+        os.chmod(os.path.join(
+            build_root, CONFIG_DIR[1:], "example.json"), 0o644)
+
+
+def package_web(build_root):
+    """Copy the web views to the package filesystem.
+    """
+    logging.info("Copying the web views to build directory")
+    shutil.copytree(WEB_VIEWS, os.path.join(build_root, WEB_DIR[1:]))
+    os.mkdir(os.path.join(build_root, WEB_OUT_DIR[1:]))
+
+    # Set permissions for each file
+    for root, d_names, f_names in os.walk(os.path.join(build_root, WEB_DIR[1:])):
+        for f in f_names:
+            os.chmod(os.path.join(root, f), 0o764)
 
 
 def go_get(branch, update=False, no_uncommitted=False):
@@ -461,7 +493,7 @@ def build(version=None,
             '-w', '-s',
             '-X', 'main.branch={}'.format(get_current_branch()),
             '-X', 'main.commit={}'.format(get_current_commit(short=True))
-            ]
+        ]
 
         if version:
             ldflags.append('-X')
@@ -523,15 +555,16 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
             # Create top-level folder displaying which platform
             os.makedirs(os.path.join(tmp_build_dir, platform))
             for arch in build_output[platform]:
-                logging.info("Creating packages for {}/{}".format(platform, arch))
+                logging.info(
+                    "Creating packages for {}/{}".format(platform, arch))
                 # Create second-level directory for architecture
                 current_location = build_output[platform][arch]
 
                 # Create directory tree to mimic file system of package
                 build_root = os.path.join(tmp_build_dir,
-                                        platform,
-                                        arch,
-                                        PACKAGE_NAME)
+                                          platform,
+                                          arch,
+                                          PACKAGE_NAME)
                 os.makedirs(build_root)
 
                 # Copy packaging scripts to build directory
@@ -540,6 +573,7 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                 else:
                     create_package_fs(build_root)
                     package_scripts(build_root)
+                    package_web(build_root)
 
                 for binary in targets:
                     # Copy binaries to packaging directory
@@ -571,7 +605,8 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                     else:
                         package_arch = arch
                     if not version:
-                        package_version = "{}~{}".format(next_version, get_current_commit(short=True))
+                        package_version = "{}~{}".format(
+                            next_version, get_current_commit(short=True))
                         package_iteration = "0"
 
                     package_build_root = build_root
@@ -580,7 +615,8 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                     if package_type in ['zip', 'tar']:
                         # For tars and zips, start the packaging one folder above
                         # the build root to include package name
-                        package_build_root = os.path.join('/', '/'.join(build_root.split('/')[:-1]))
+                        package_build_root = os.path.join(
+                            '/', '/'.join(build_root.split('/')[:-1]))
                         if nightly:
                             if static or "static_" in arch:
                                 name = '{}-static-nightly_{}_{}'.format(name,
@@ -601,25 +637,34 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                                                             package_version,
                                                             platform,
                                                             package_arch)
-                        current_location = os.path.join(os.getcwd(), current_location)
+                        current_location = os.path.join(
+                            os.getcwd(), current_location)
                         if package_type == 'tar':
-                            tar_command = "cd {} && tar -cvzf {}.tar.gz ./*".format(package_build_root, name)
+                            tar_command = "cd {} && tar -cvzf {}.tar.gz ./*".format(
+                                package_build_root, name)
                             run(tar_command, shell=True)
-                            run("mv {}.tar.gz {}".format(os.path.join(package_build_root, name), current_location), shell=True)
-                            outfile = os.path.join(current_location, name + ".tar.gz")
+                            run("mv {}.tar.gz {}".format(os.path.join(
+                                package_build_root, name), current_location), shell=True)
+                            outfile = os.path.join(
+                                current_location, name + ".tar.gz")
                             outfiles.append(outfile)
                         elif package_type == 'zip':
-                            zip_command = "cd {} && zip -r {}.zip ./*".format(package_build_root, name)
+                            zip_command = "cd {} && zip -r {}.zip ./*".format(
+                                package_build_root, name)
                             run(zip_command, shell=True)
-                            run("mv {}.zip {}".format(os.path.join(package_build_root, name), current_location), shell=True)
-                            outfile = os.path.join(current_location, name + ".zip")
+                            run("mv {}.zip {}".format(os.path.join(
+                                package_build_root, name), current_location), shell=True)
+                            outfile = os.path.join(
+                                current_location, name + ".zip")
                             outfiles.append(outfile)
 
                     elif package_type not in ['zip', 'tar'] and static or "static_" in arch:
-                        logging.info("Skipping package type '{}' for static builds.".format(package_type))
+                        logging.info(
+                            "Skipping package type '{}' for static builds.".format(package_type))
                     else:
                         if package_type == 'rpm' and release and '~' in package_version:
-                            package_version, suffix = package_version.split('~', 1)
+                            package_version, suffix = package_version.split(
+                                '~', 1)
                             # The ~ indicatees that this is a prerelease so we give it a leading 0.
                             package_iteration = "0.%s" % suffix
                         fpm_command = "fpm {} --name {} -a {} -t {} --version {} --iteration {} -C {} -p {} ".format(
@@ -632,27 +677,35 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                             package_build_root,
                             current_location)
                         if package_type == "rpm":
-                            fpm_command += "--directories /var/log/gogios --directories /etc/gogios --depends coreutils --depends shadow-utils --rpm-posttrans {}".format(POSTINST_SCRIPT)
-                            out = run(fpm_command, shell=True)
-                            matches = re.search(':path=>"(.*)"', out)
-                            outfile = None
-                            if matches is not None:
-                                outfile = matches.groups()[0]
-                            if outfile is None:
-                                logging.warn(
-                                    "Could not determine output from packaging output!")
+                            fpm_command += "--directories /var/log/gogios --directories /etc/gogios --depends coreutils --depends shadow-utils --rpm-posttrans {}".format(
+                                POSTINST_SCRIPT)
+                        elif package_type == "deb":
+                            for p in optional_depends:
+                                fpm_command += "--deb-recommends {}".format(p)
+                        elif package_type == "pacman":
+                            for p in optional_depends:
+                                fpm_command += "--pacman-optional-depends {}".format(p)
+                        out = run(fpm_command, shell=True)
+                        matches = re.search(':path=>"(.*)"', out)
+                        outfile = None
+                        if matches is not None:
+                            outfile = matches.groups()[0]
+                        if outfile is None:
+                            logging.warn(
+                                "Could not determine output from packaging output!")
+                        else:
+                            if nightly:
+                                # Strip nightly version from package name
+                                new_outfile = outfile.replace(
+                                    "{}-{}".format(package_version, package_iteration), "nightly")
+                                os.rename(outfile, new_outfile)
+                                outfile = new_outfile
                             else:
-                                if nightly:
-                                    # Strip nightly version from package name
-                                    new_outfile = outfile.replace("{}-{}".format(package_version, package_iteration), "nightly")
-                                    os.rename(outfile, new_outfile)
-                                    outfile = new_outfile
-                                else:
-                                    if package_type == 'rpm':
-                                        # rpm's convert dashes to underscores
-                                        package_version = package_version.replace(
-                                            "-", "_")
-                                outfiles.append(os.path.join(os.getcwd(), outfile))
+                                if package_type == 'rpm':
+                                    # rpm's convert dashes to underscores
+                                    package_version = package_version.replace(
+                                        "-", "_")
+                            outfiles.append(os.path.join(os.getcwd(), outfile))
 
         logging.debug("Produced package files: {}".format(outfiles))
         return outfiles
@@ -746,14 +799,15 @@ def main(args):
             logging.error("FPM ruby gem required for packaging. Stopping.")
             return 1
         packages = package(build_output,
-                            args.name,
-                            args.version,
-                            nightly=args.nightly,
-                            iteration=args.iteration,
-                            static=args.static,
-                            release=args.release)
+                           args.name,
+                           args.version,
+                           nightly=args.nightly,
+                           iteration=args.iteration,
+                           static=args.static,
+                           release=args.release)
         if args.sign:
-            logging.debug("Generating GPG signatures for packages: {}".format(packages))
+            logging.debug(
+                "Generating GPG signatures for packages: {}".format(packages))
             sigs = []  # Keep track of signatures so they can be uploaded with packages
             for p in packages:
                 if generate_sig_from_file(p):
@@ -771,7 +825,8 @@ def main(args):
                          generate_sha256_from_file(filename))
 
     if orig_branch != get_current_branch():
-        logging.info("Moving back to original git branch: {}".format(args.branch))
+        logging.info(
+            "Moving back to original git branch: {}".format(args.branch))
         run("git checkout {}".format(orig_branch))
 
     return 0
@@ -785,100 +840,101 @@ if __name__ == '__main__':
     logging.basicConfig(level=LOG_LEVEL,
                         format=log_format)
 
-    parser = argparse.ArgumentParser(description='InfluxDB build and packaging script, modified by Bailey Kasin to work with gogios.')
+    parser = argparse.ArgumentParser(
+        description='InfluxDB build and packaging script, modified by Bailey Kasin to work with gogios.')
     parser.add_argument('-verbose', '-v', '--debug',
-                                action='store_true',
-                                help='Use debug output')
+                        action='store_true',
+                        help='Use debug output')
     parser.add_argument('--outdir', '-o',
-                                metavar='<output directory>',
-                                default='./build/',
-                                type=os.path.abspath,
-                                help='Output directory')
+                        metavar='<output directory>',
+                        default='./build/',
+                        type=os.path.abspath,
+                        help='Output directory')
     parser.add_argument('--name', '-n',
-                                metavar='<name>',
-                                default=PACKAGE_NAME,
-                                type=str,
-                                help='Name to use for package name (when package is specified)')
+                        metavar='<name>',
+                        default=PACKAGE_NAME,
+                        type=str,
+                        help='Name to use for package name (when package is specified)')
     parser.add_argument('--arch',
-                                metavar='<amd64|i386|armhf|arm64|armel|all>',
-                                type=str,
-                                default=get_system_arch(),
-                                help='Target architecture for build output')
+                        metavar='<amd64|i386|armhf|arm64|armel|all>',
+                        type=str,
+                        default=get_system_arch(),
+                        help='Target architecture for build output')
     parser.add_argument('--platform',
-                                metavar='<linux|freebsd|all>',
-                                type=str,
-                                default=get_system_platform(),
-                                help='Target platform for build output')
+                        metavar='<linux|freebsd|all>',
+                        type=str,
+                        default=get_system_platform(),
+                        help='Target platform for build output')
     parser.add_argument('--branch',
-                        metavar = '<branch>',
-                        type = str,
-                        default = get_current_branch(),
-                        help = 'Build from a specific branch')
+                        metavar='<branch>',
+                        type=str,
+                        default=get_current_branch(),
+                        help='Build from a specific branch')
     parser.add_argument('--commit',
-                        metavar = '<commit>',
-                        type = str,
-                        default = get_current_commit(short=True),
-                        help = 'Build from a specific commit')
+                        metavar='<commit>',
+                        type=str,
+                        default=get_current_commit(short=True),
+                        help='Build from a specific commit')
     parser.add_argument('--version',
-                        metavar = '<version>',
-                        type = str,
-                        default = get_current_version(),
-                        help = 'Version information to apply to build output (ex: 0.12.0)')
+                        metavar='<version>',
+                        type=str,
+                        default=get_current_version(),
+                        help='Version information to apply to build output (ex: 0.12.0)')
     parser.add_argument('--iteration',
-                        metavar = '<package iteration>',
-                        type = str,
-                        default = "1",
-                        help = 'Package iteration to apply to build output (defaults to 1)')
+                        metavar='<package iteration>',
+                        type=str,
+                        default="1",
+                        help='Package iteration to apply to build output (defaults to 1)')
     parser.add_argument('--nightly',
-                        action = 'store_true',
-                        help = 'Mark build output as nightly build (will incremement the minor version)')
+                        action='store_true',
+                        help='Mark build output as nightly build (will incremement the minor version)')
     parser.add_argument('--update',
-                        action = 'store_true',
-                        help = 'Update build dependencies prior to building')
+                        action='store_true',
+                        help='Update build dependencies prior to building')
     parser.add_argument('--package',
-                        action = 'store_true',
-                        help = 'Package binary output')
+                        action='store_true',
+                        help='Package binary output')
     parser.add_argument('--release',
-                        action = 'store_true',
-                        help = 'Mark build output as release')
+                        action='store_true',
+                        help='Mark build output as release')
     parser.add_argument('--clean',
-                        action = 'store_true',
-                        help = 'Clean output directory before building')
+                        action='store_true',
+                        help='Clean output directory before building')
     parser.add_argument('--no-get',
-                        action = 'store_true',
-                        help = 'Do not retrieve pinned dependencies when building')
+                        action='store_true',
+                        help='Do not retrieve pinned dependencies when building')
     parser.add_argument('--no-uncommitted',
-                        action = 'store_true',
-                        help = 'Fail if uncommitted changes exist in the working directory')
+                        action='store_true',
+                        help='Fail if uncommitted changes exist in the working directory')
     parser.add_argument('--generate',
-                        action = 'store_true',
-                        help = 'Run "go generate" before building')
+                        action='store_true',
+                        help='Run "go generate" before building')
     parser.add_argument('--build-tags',
-                        metavar = '<tags>',
-                        help = 'Optional build tags to use for compilation')
+                        metavar='<tags>',
+                        help='Optional build tags to use for compilation')
     parser.add_argument('--static',
-                        action = 'store_true',
-                        help = 'Create statically-compiled binary output')
+                        action='store_true',
+                        help='Create statically-compiled binary output')
     parser.add_argument('--sign',
-                        action = 'store_true',
-                        help = 'Create GPG detached signatures for packages (when package is specified)')
+                        action='store_true',
+                        help='Create GPG detached signatures for packages (when package is specified)')
     parser.add_argument('--test',
-                        action = 'store_true',
-                        help = 'Run tests (does not produce build output)')
+                        action='store_true',
+                        help='Run tests (does not produce build output)')
     parser.add_argument('--no-vet',
-                        action = 'store_true',
-                        help = 'Do not run "go vet" when running tests')
+                        action='store_true',
+                        help='Do not run "go vet" when running tests')
     parser.add_argument('--race',
-                        action = 'store_true',
-                        help = 'Enable race flag for build output')
+                        action='store_true',
+                        help='Enable race flag for build output')
     parser.add_argument('--parallel',
-                        metavar = '<num threads>',
-                        type = int,
-                        help = 'Number of tests to run simultaneously')
+                        metavar='<num threads>',
+                        type=int,
+                        help='Number of tests to run simultaneously')
     parser.add_argument('--timeout',
-                        metavar = '<timeout>',
-                        type = str,
-                        help = 'Timeout for tests before failing')
-    args=parser.parse_args()
+                        metavar='<timeout>',
+                        type=str,
+                        help='Timeout for tests before failing')
+    args = parser.parse_args()
     print_banner()
     sys.exit(main(args))

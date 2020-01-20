@@ -28,6 +28,12 @@ if [[ ! -d /etc/default/gogios ]]; then
     touch /etc/default/gogios
 fi
 
+# If the user has no checks yet, give them the example file
+if [ ! -f /etc/gogios/checks.json ]; then
+    echo "Making default check file"
+    cp /etc/gogios/example.json /etc/gogios/checks.json
+fi
+
 # Distribution specific
 if [[ -f /etc/redhat-release ]] || [[ -f /etc/SuSE-release ]]; then
     if [[ "$(readlink /proc/1/exe)" == */systemd ]]; then
@@ -67,3 +73,6 @@ elif [[ -f /etc/os-release ]]; then
         install_systemd /usr/lib/systemd/system/gogios.service
     fi
 fi
+
+# Gogios will fail to start if these files aren't owned
+chown gogios:gogios -R /opt/gogios
