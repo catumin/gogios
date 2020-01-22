@@ -155,7 +155,7 @@ func runChecks(t time.Time, conf *config.Config) {
 		curr[i].TotalCount = totalCount
 
 		// Send out notifications through all enabled notifiers
-		if len(prev) > i && curr[i].Status != curr[i].Status {
+		if len(prev) > i && curr[i].Status != prev[i].Status {
 			for _, notifier := range conf.Notifiers {
 				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, commandOutput, curr[i].Status)
 				if err != nil {
