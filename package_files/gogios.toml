@@ -18,8 +18,8 @@
 [web_options]
   # Change IP to 0.0.0.0 to listen on all interfaces
   IP = "127.0.0.1"
-  HTTPPort = 8411
-  HTTPSPort = 8412
+  http_port = 8411
+  https_port = 8412
 
   # Should the website be hosted on HTTPS
   SSL = false
@@ -27,12 +27,12 @@
   redirect = false
 
   # Path to TLS cert and key for HTTPS
-  TLSCert = ""
-  TLSKey = ""
+  tls_cert = ""
+  tls_key = ""
 
-  exposeAPI = true
-  APIIP = "0.0.0.0"
-  APIPort = 8413
+  expose_api = true
+  api_ip = "0.0.0.0"
+  api_port = 8413
 
 
 ###########################
@@ -40,6 +40,14 @@
 # Notifiers
 #
 ###########################
+
+
+# # Send a notification to a Slack channel using a bot when a check changes states
+# [[notifiers.slack]]
+#   ## Slack bot API token
+#   token = ""
+#   ## Channel ID to post message to
+#   chats = ""
 
 
 # # Send a notification to a Telegram channel using a bot when a check changes states
@@ -60,9 +68,9 @@
 #   ## Account auth token
 #   token = ""
 #   ## Phone number for your Twilio account
-#   twilioNumber = ""
+#   twilio_number = ""
 #   ## Phone number that should be texted with the notification
-#   sendTo = ""
+#   send_to = ""
 #
 #   ## HTTP response timeout (default: 10s)
 #   response_timeout = "10s"
