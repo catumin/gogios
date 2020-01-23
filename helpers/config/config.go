@@ -75,7 +75,7 @@ func NewConfig() *Config {
 			SSL:       false,
 			Redirect:  false,
 			ExposeAPI: true,
-			APIIP:     "0.0.0.0",
+			APIIP:     "127.0.0.1",
 			APIPort:   8413,
 		},
 		Notifiers: make([]*models.ActiveNotifier, 0),
@@ -168,10 +168,10 @@ var optionsConfig = `
 [options]
   # How often to run checks in minutes
   interval = "3m"
-  # Verbose logging. true or false
+  # Include check output in the log file
   verbose = false
 
-  # Per checkout timeout in seconds
+  # Per check timeout in seconds
   # If enough checks get stuck it is possible that the
   # next round will start before the previous finishes
   timeout = "60s"
@@ -194,8 +194,10 @@ var webConfig = `
   tls_cert = ""
   tls_key = ""
 
+  # Allow the REST API to be accessed on the IP and port
+  # specified
   expose_api = true
-  api_ip = "0.0.0.0"
+  api_ip = "127.0.0.1"
   api_port = 8413
 
 `
