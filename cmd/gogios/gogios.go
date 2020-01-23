@@ -132,7 +132,8 @@ func runChecks(t time.Time, conf *config.Config) {
 		}()
 
 		var goodCount = 0
-		var totalCount = 0
+		// Start at 1 because newly added checks will start as 1/0 or 0/0 otherwise
+		var totalCount = 1
 		curr[i].Asof = time.Now().Format(time.RFC822)
 
 		if len(prev) > i {
