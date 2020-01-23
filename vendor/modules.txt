@@ -1,7 +1,16 @@
 # github.com/gorilla/mux v1.7.3
 github.com/gorilla/mux
+# github.com/gorilla/websocket v1.2.0
+github.com/gorilla/websocket
 # github.com/influxdata/toml v0.0.0-20180607005434-2a2e3012f7cf
 github.com/influxdata/toml
 github.com/influxdata/toml/ast
 # github.com/naoina/go-stringutil v0.1.0
 github.com/naoina/go-stringutil
+# github.com/nlopes/slack v0.6.0
+github.com/nlopes/slack
+github.com/nlopes/slack/internal/errorsx
+github.com/nlopes/slack/internal/timex
+github.com/nlopes/slack/slackutilsx
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
