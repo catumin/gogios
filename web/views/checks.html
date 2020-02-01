@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="refresh" content="{{.}}" />
+  <meta http-equiv="refresh" content="{{.Refresh}}" />
   <title>Home Page - Ginger Technology Service Check Engine</title>
 
   <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -26,16 +26,19 @@
       <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
           <li><a href="index.html">Home</a></li>
-          <li><a href="About.html">About</a></li>
+          <li><a href="https://github.com/BKasin/gogios/wiki">About</a></li>
         </ul>
       </div>
     </div>
   </nav>
   <div class="container body-content">
     <div style="margin-top:20px">
-      <script type="text/javascript" src="lib/jquery/dist/jquery.js"></script>
-      <script type="text/javascript" src="js/table.js"></script>
-      <script type="text/javascript" src="js/index.js"></script>
+      <script type="text/javascript">
+        function replaceText(title, output) {
+          document.getElementById('CheckName').textContent = title;
+          document.getElementById('CheckOutput').innerHTML = "<xmp>" + output + "</xmp>";
+        }
+      </script>
       <table class="table table-bordered table-condensed table-hover table-striped">
         <thead>
           <tr>
@@ -45,7 +48,39 @@
             <th>As Of</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+          {{range .Checks}}
+          {{if (not .DeletedAt)}}
+          <tr>
+            <td><a href='#' onclick='replaceText("{{.Title}}", `{{.Output}}`);'>{{.Title}}</a></td>
+            <td>
+              <script type="text/javascript">
+                if ("{{.Status}}" == "Success") {
+                  document.write("<font color='green'>{{.Status}}</font>");
+                }
+                else if ("{{.Status}}" == "Failed") {
+                  document.write("<font color='red'>Failed</font>");
+                }
+                else if ("{{.Status}}" == "Timed Out") {
+                  document.write("<font color='orange'>Timed Out</font>");
+                }
+              </script>
+            </td>
+            <td>
+              <script type="text/javascript">
+                document.write(Math.round({{.GoodCount }} / {{.TotalCount}} * 100) + "% Uptime");
+              </script>
+            </td>
+            <td>
+              <script type="text/javascript">
+                var date = "{{.Asof}}";
+                document.write(date.substr(0, 19) + " " + date.substr(36, 36));
+              </script>
+            </td>
+          </tr>
+          {{end}}
+          {{end}}
+        </tbody>
       </table>
 
     </div>
@@ -64,3 +99,9 @@
 </body>
 
 </html>
+{{range .Items}}
+<div class="item">
+  {{template "header" .Name}}
+  <span class="price">${{.Price}}</span>
+</div>
+{{end}}

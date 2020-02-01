@@ -21,8 +21,9 @@ LOG_DIR = "/var/log/gogios"
 SCRIPT_DIR = "/usr/lib/gogios/scripts"
 PLUGIN_DIR = "/usr/lib/gogios/plugins"
 CONFIG_DIR = "/etc/gogios"
-WEB_DIR = "/opt/gogios"
-WEB_OUT_DIR = "/opt/gogios/js/output"
+DATABASE_DIR = "/var/lib/gogios"
+WEB_DIR = "/usr/share/gogios/views"
+WEB_VIEWS = "web/views"
 
 INIT_SCRIPT = "scripts/init.sh"
 SYSTEMD_SCRIPT = "scripts/gogios.service"
@@ -31,7 +32,6 @@ POSTINST_SCRIPT = "scripts/post-install.sh"
 PREINST_SCRIPT = "scripts/pre-install.sh"
 POSTREMOVE_SCRIPT = "scripts/post-remove.sh"
 PREREMOVE_SCRIPT = "scripts/pre-remove.sh"
-WEB_VIEWS = "web/views"
 EXAMPLE_CHECKS = "package_files/example.json"
 
 CONFIGURATION_FILES = [
@@ -109,7 +109,8 @@ def create_package_fs(build_root):
         "Create a filesystem hierarchy from directory: {}".format(build_root))
 
     dirs = [INSTALL_ROOT_DIR[1:], LOG_DIR[1:],
-            PLUGIN_DIR[1:], SCRIPT_DIR[1:], CONFIG_DIR[1:]]
+            PLUGIN_DIR[1:], SCRIPT_DIR[1:], CONFIG_DIR[1:],
+            DATABASE_DIR[1:]]
     for d in dirs:
         os.makedirs(os.path.join(build_root, d))
         os.chmod(os.path.join(build_root, d), 0o755)
@@ -160,7 +161,6 @@ def package_web(build_root):
     """
     logging.info("Copying the web views to build directory")
     shutil.copytree(WEB_VIEWS, os.path.join(build_root, WEB_DIR[1:]))
-    os.mkdir(os.path.join(build_root, WEB_OUT_DIR[1:]))
 
     # Set permissions for each file
     for root, d_names, f_names in os.walk(os.path.join(build_root, WEB_DIR[1:])):

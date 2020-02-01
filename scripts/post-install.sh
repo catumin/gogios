@@ -2,6 +2,7 @@
 
 BIN_DIR=/usr/bin
 LOG_DIR=/var/log/gogios
+DATABASE_DIR=/var/lib/gogios
 SCRIPT_DIR=/usr/lib/gogios/scripts
 
 function install_init {
@@ -52,6 +53,9 @@ elif [[ -f /etc/debian_version ]]; then
     test -d $LOG_DIR || mkdir -p $LOG_DIR
     chown -R -L gogios:gogios $LOG_DIR
     chmod 755 $LOG_DIR
+    test -d $DATABASE_DIR || mkdir -p $DATABASE_DIR
+    chown -R -L gogios:gogios $DATABASE_DIR
+    chmod 755 $DATABASE_DIR
 
     if [[ "$(readlink /proc/1/exe)" == */systemd ]]; then
         install_systemd /lib/systemd/system/gogios.service

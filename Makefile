@@ -46,10 +46,8 @@ install:
 	install -d -m 664 $(DESTDIR)/etc/gogios
 	install -d $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/usr/lib/systemd/system
-	for d in $$(find web/views/ -type d); do install -d -m 764 $(DESTDIR)/opt/gogios/$$(echo $$d | cut -d"/" -f3-); done
-	for f in $$(find web/views/ -type f); do install -D --mode 764 "$$f" $(DESTDIR)/opt/gogios/$$(echo $$f | cut -d"/" -f3-); done
-	install -d -m 764 $(DESTDIR)/opt/gogios/js/output
-	touch $(DESTDIR)/opt/gogios/js/output/.keep
+	for d in $$(find web/views/ -type d); do install -d -m 764 $(DESTDIR)/usr/share/gogios/$$(echo $$d | cut -d"/" -f3-); done
+	for f in $$(find web/views/ -type f); do install -D --mode 764 "$$f" $(DESTDIR)/usr/share/gogios/$$(echo $$f | cut -d"/" -f3-); done
 	install -m 664 package_files/example.json $(DESTDIR)/etc/gogios
 	install -m 664 package_files/gogios.toml $(DESTDIR)/etc/gogios/gogios.sample.toml
 	install -o root -g root -m 644 scripts/gogios.service $(DESTDIR)/usr/lib/systemd/system
