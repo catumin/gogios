@@ -53,7 +53,7 @@ go_vet_command = "go tool vet -composites=true ./"
 optional_prereqs = ['gvm', 'fpm', 'rpmbuild']
 
 # Packages that the final result will recommend on install
-optional_depends = ['nginx']
+optional_depends = ['nginx' 'sqlite3']
 
 fpm_common_args = "-f -s dir --log error \
     --vendor {} \

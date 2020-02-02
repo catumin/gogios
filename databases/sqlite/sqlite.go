@@ -28,7 +28,7 @@ func (s *Sqlite) SampleConfig() string {
 
 // Description returns a brief explanation of the database
 func (s *Sqlite) Description() string {
-	return "Output check data to a Sqlite3 database file. This is the default database option and is used to build the web interface"
+	return "Output check data to a Sqlite3 database file"
 }
 
 // AddRow determines whether a record for the check exists in the database
