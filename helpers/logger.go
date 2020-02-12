@@ -1,10 +1,8 @@
 package helpers
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"time"
 )
 
 var (
@@ -14,11 +12,6 @@ var (
 
 func init() {
 	logPath := "/var/log/gogios/service_check.log"
-
-	err := Copy(logPath, logPath+time.Now().Format(time.RFC822))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 
 	file, err := os.Create(logPath)
 	if err != nil {
