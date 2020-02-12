@@ -31,8 +31,10 @@ func API(conf *config.Config) {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/", apiHome)
+
 	router.HandleFunc("/api/getAllChecks", getAllChecks)
 	router.HandleFunc("/api/getCheck/{check}", getCheckStatus)
+
 	helpers.Log.Fatal(http.ListenAndServe(conf.WebOptions.APIIP+":"+strconv.Itoa(conf.WebOptions.APIPort), router))
 }
 
@@ -46,6 +48,9 @@ func getAllStatuses() []status {
 	var allChecks []status
 
 	for i := 0; i < len(allPrev); i++ {
+		if allPrev[i].DeletedAt.String() != "" {
+			continue
+		}
 		allChecks = append(allChecks, status{
 			ID:         strconv.FormatUint(uint64(allPrev[i].ID), 10),
 			Title:      allPrev[i].Title,
