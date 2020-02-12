@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bkasin/gogios/databases"
 	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/models"
 	"github.com/bkasin/gogios/notifiers"
@@ -21,6 +22,7 @@ type Config struct {
 	WebOptions *WebOptionsConfig
 
 	Notifiers []*models.ActiveNotifier
+	Databases []*models.ActiveDatabase
 }
 
 // OptionsConfig - General system options such as check interval
@@ -79,6 +81,7 @@ func NewConfig() *Config {
 			APIPort:   8413,
 		},
 		Notifiers: make([]*models.ActiveNotifier, 0),
+		Databases: make([]*models.ActiveDatabase, 0),
 	}
 
 	return c
@@ -118,7 +121,7 @@ func (c *Config) GetConfig(config string) error {
 		}
 	}
 
-	// Notifiers
+	// Notifiers and Databases
 	for name, val := range tbl.Fields {
 		subTable, ok := val.(*ast.Table)
 		if !ok {
@@ -140,6 +143,19 @@ func (c *Config) GetConfig(config string) error {
 					return fmt.Errorf("Unsupported config format: %s, file %s", notifierName, config)
 				}
 			}
+		case "databases":
+			for databaseName, val := range subTable.Fields {
+				switch databaseSubTable := val.(type) {
+				case []*ast.Table:
+					for _, t := range databaseSubTable {
+						if err = c.addDatabase(databaseName, t); err != nil {
+							return fmt.Errorf("Error parsing: %s, %s", config, err)
+						}
+					}
+				default:
+					return fmt.Errorf("Unsupported config format: %s, file %s", databaseName, config)
+				}
+			}
 		default:
 			fmt.Printf("Unrecognized config option: %s", name)
 		}
@@ -153,6 +169,16 @@ func (c *Config) NotifierNames() []string {
 	var name []string
 	for _, notifier := range c.Notifiers {
 		name = append(name, notifier.Config.Name)
+	}
+
+	return name
+}
+
+// DatabaseNames returns a list of all configured databases
+func (c *Config) DatabaseNames() []string {
+	var name []string
+	for _, database := range c.Databases {
+		name = append(name, database.Config.Name)
 	}
 
 	return name
@@ -202,6 +228,15 @@ var webConfig = `
 
 `
 
+var databaseHeader = `
+###########################
+#
+# Databases
+#
+###########################
+
+`
+
 var notifierHeader = `
 ###########################
 #
@@ -216,6 +251,9 @@ func PrintSampleConfig() {
 	fmt.Printf(header)
 	fmt.Printf(optionsConfig)
 	fmt.Printf(webConfig)
+
+	fmt.Printf(databaseHeader)
+	printDatabases(true)
 
 	fmt.Printf(notifierHeader)
 	printNotifiers(true)
@@ -233,6 +271,21 @@ func printNotifiers(commented bool) {
 		notifier := creator()
 
 		printConfig(aname, notifier, "notifiers", commented)
+	}
+}
+
+func printDatabases(commented bool) {
+	var anames []string
+	for aname := range databases.Databases {
+		anames = append(anames, aname)
+	}
+	sort.Strings(anames)
+
+	for _, aname := range anames {
+		creator := databases.Databases[aname]
+		database := creator()
+
+		printConfig(aname, database, "databases", commented)
 	}
 }
 
@@ -286,8 +339,37 @@ func (c *Config) addNotifier(name string, table *ast.Table) error {
 	return nil
 }
 
+func (c *Config) addDatabase(name string, table *ast.Table) error {
+	creator, ok := databases.Databases[name]
+	if !ok {
+		return fmt.Errorf("Undefined but requested database: %s", name)
+	}
+	database := creator()
+
+	databaseConfig, err := buildDatabase(name, table)
+	if err != nil {
+		return err
+	}
+
+	if err := toml.UnmarshalTable(table, database); err != nil {
+		return err
+	}
+
+	rf := models.NewActiveDatabase(database, databaseConfig)
+
+	c.Databases = append(c.Databases, rf)
+
+	return nil
+}
+
 func buildNotifier(name string, tbl *ast.Table) (*models.NotifierConfig, error) {
 	conf := &models.NotifierConfig{Name: name}
+
+	return conf, nil
+}
+
+func buildDatabase(name string, tbl *ast.Table) (*models.DatabaseConfig, error) {
+	conf := &models.DatabaseConfig{Name: name}
 
 	return conf, nil
 }

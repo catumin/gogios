@@ -2,24 +2,25 @@
 
 BIN_DIR=/usr/bin
 LOG_DIR=/var/log/gogios
+DATABASE_DIR=/var/lib/gogios
 SCRIPT_DIR=/usr/lib/gogios/scripts
 
-function install_init {
+function install_init() {
     cp -f $SCRIPT_DIR/init.sh /etc/init.d/gogios
     chmod +x /etc/init.d/gogios
 }
 
-function install_systemd {
+function install_systemd() {
     cp -f $SCRIPT_DIR/gogios.service $1
     systemctl enable gogios || true
     systemctl daemon-reload || true
 }
 
-function install_update_rcd {
+function install_update_rcd() {
     update-rc.d gogios defaults
 }
 
-function install_chkconfig {
+function install_chkconfig() {
     chkconfig --add gogios
 }
 
@@ -52,6 +53,9 @@ elif [[ -f /etc/debian_version ]]; then
     test -d $LOG_DIR || mkdir -p $LOG_DIR
     chown -R -L gogios:gogios $LOG_DIR
     chmod 755 $LOG_DIR
+    test -d $DATABASE_DIR || mkdir -p $DATABASE_DIR
+    chown -R -L gogios:gogios $DATABASE_DIR
+    chmod 755 $DATABASE_DIR
 
     if [[ "$(readlink /proc/1/exe)" == */systemd ]]; then
         install_systemd /lib/systemd/system/gogios.service
@@ -70,6 +74,12 @@ elif [[ -f /etc/debian_version ]]; then
 elif [[ -f /etc/os-release ]]; then
     source /etc/os-release
     if [[ "$NAME" = "Arch Linux" ]]; then
+        test -d $LOG_DIR || mkdir -p $LOG_DIR
+        chown -R -L gogios:gogios $LOG_DIR
+        chmod 755 $LOG_DIR
+        test -d $DATABASE_DIR || mkdir -p $DATABASE_DIR
+        chown -R -L gogios:gogios $DATABASE_DIR
+        chmod 755 $DATABASE_DIR
         install_systemd /usr/lib/systemd/system/gogios.service
     fi
 fi

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bkasin/gogios"
+	_ "github.com/bkasin/gogios/databases/all"
 	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/config"
 	_ "github.com/bkasin/gogios/notifiers/all"
@@ -20,19 +22,6 @@ var (
 	configFile = flag.String("config", "/etc/gogios/gogios.toml", "Config file to use")
 	sampleConf = flag.Bool("sample_conf", false, "Print a sample config file to stdout")
 )
-
-// Check - struct to format checks
-type Check struct {
-	ID         string `json:"id"`
-	Title      string `json:"title"`
-	Command    string `json:"command"`
-	Expected   string `json:"expected"`
-	Status     string `json:"status"`
-	GoodCount  int    `json:"good_count"`
-	TotalCount int    `json:"total_count"`
-	Asof       string `json:"asof"`
-	Output     string `json:"output"`
-}
 
 func main() {
 	flag.Parse()
@@ -53,7 +42,21 @@ func main() {
 		helpers.Log.Println(err.Error())
 	}
 
+	fmt.Println(conf.DatabaseNames())
 	fmt.Println(conf.NotifierNames())
+
+	// Need at least one database to start
+	if len(conf.DatabaseNames()) == 0 {
+		fmt.Println("gogios needs at least one database enabled to start.\nSqlite is the easiest to get started with.")
+		os.Exit(1)
+	}
+
+	err = initPlugins(conf)
+	if err != nil {
+		fmt.Println("Could not initialize plugins. Error:")
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 	// Start serving the website
 	web.ServePage(conf)
@@ -81,8 +84,8 @@ func runChecks(t time.Time, conf *config.Config) {
 		os.Exit(1)
 	}
 
-	// Create variables to hold the data for the currnet and previous check lists
-	var curr, prev []Check
+	// Create variables to hold the data for the currnet check list
+	var curr []gogios.Check
 	err = json.Unmarshal(raw, &curr)
 	if err != nil {
 		helpers.Log.Println("JSON could not be unmarshaled, error return:")
@@ -90,39 +93,16 @@ func runChecks(t time.Time, conf *config.Config) {
 		os.Exit(1)
 	}
 
-	// Copy checks.json to current.json if it does not exist
-	if _, err := os.Stat("/opt/gogios/js/current.json"); os.IsNotExist(err) {
-		err = helpers.Copy("/etc/gogios/checks.json", "/opt/gogios/js/current.json")
-		if err != nil {
-			helpers.Log.Println("Could not copy checks template to current.json, error return:")
-			helpers.Log.Println(err.Error())
-		}
-	}
-
-	// Copy the check values from the previous round of checks to a different file...
-	err = helpers.Copy("/opt/gogios/js/current.json", "/opt/gogios/js/prev.json")
+	// Use the first configured database as the primary for holding data
+	primaryDB := conf.Databases[0].Database
+	allPrev, err := primaryDB.GetAllRows()
 	if err != nil {
-		helpers.Log.Println("Could not create copy of current check states, error return:")
+		helpers.Log.Println("Could not read database")
 		helpers.Log.Println(err.Error())
-	}
-
-	// ... And then use that to set the prev variable to the old results
-	raw, err = ioutil.ReadFile("/opt/gogios/js/prev.json")
-	if err != nil {
-		helpers.Log.Println("Previous check file could not be read, error return:")
-		helpers.Log.Println(err.Error())
-		os.Exit(1)
-	}
-	err = json.Unmarshal(raw, &prev)
-	if err != nil {
-		helpers.Log.Println("JSON could not be unmarshaled, error return:")
-		helpers.Log.Println(err.Error())
-		os.Exit(1)
 	}
 
 	// Iterate through all the checks in the check list
 	for i := 0; i < len(curr); i++ {
-		var commandOutput string
 		curr[i].Status = "Failed"
 
 		outputChannel := make(chan string, 1)
@@ -134,11 +114,16 @@ func runChecks(t time.Time, conf *config.Config) {
 		var goodCount = 0
 		// Start at 1 because newly added checks will start as 1/0 or 0/0 otherwise
 		var totalCount = 1
-		curr[i].Asof = time.Now().Format(time.RFC822)
 
-		if len(prev) > i {
-			goodCount = prev[i].GoodCount
-			totalCount = prev[i].TotalCount + 1
+		prev, err := primaryDB.GetRow(curr[i], "title")
+		if err != nil {
+			helpers.Log.Println("Could not read database into prev variable")
+			helpers.Log.Println(err.Error())
+		}
+
+		if prev.Title != "" {
+			goodCount = prev.GoodCount
+			totalCount = prev.TotalCount + 1
 		}
 
 		select {
@@ -147,42 +132,56 @@ func runChecks(t time.Time, conf *config.Config) {
 				curr[i].Status = "Success"
 				goodCount++
 			}
-			commandOutput = output
+			curr[i].Output = output
 		case <-time.After(conf.Options.Timeout.Duration):
 			curr[i].Status = "Timed Out"
 		}
 
+		curr[i].Asof = time.Now()
 		curr[i].GoodCount = goodCount
 		curr[i].TotalCount = totalCount
 
 		// Send out notifications through all enabled notifiers
-		if len(prev) > i && curr[i].Status != prev[i].Status {
+		if prev.Title != "" && curr[i].Status != prev.Status {
 			for _, notifier := range conf.Notifiers {
-				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof, commandOutput, curr[i].Status)
+				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), curr[i].Output, curr[i].Status)
 				if err != nil {
 					helpers.Log.Println(err.Error())
 				}
 			}
 		}
 
-		err = helpers.WriteStringToFile("/opt/gogios/js/output/"+curr[i].Title, commandOutput)
-		if err != nil {
-			helpers.Log.Printf("Output for check %s could not be written to output file. Error return: %s", curr[i].Title, err.Error())
+		// Set the current ID equal to the old ID, so that GORM can update the data properly
+		// GORM will assign a new ID if prev.ID is nil
+		curr[i].ID = prev.ID
+
+		// Update or add rows for each configured database, then remove from allPrev[]
+		for _, database := range conf.Databases {
+			err := database.Database.AddRow(curr[i])
+			if err != nil {
+				helpers.Log.Println(err.Error())
+			}
+
+			for old := 0; old < len(allPrev); old++ {
+				if allPrev[old].ID == curr[i].ID {
+					allPrev = append(allPrev[:old], allPrev[old+1:]...)
+				}
+			}
 		}
 
 		if conf.Options.Verbose {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+curr[i].Status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+commandOutput)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+curr[i].Output)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
 			}
 		} else {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof+" | Check "+curr[i].Title+" status: "+curr[i].Status)
+			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
 			if err != nil {
 				fmt.Println("Log could not be written. Error return:")
 				fmt.Println(err.Error())
@@ -190,13 +189,15 @@ func runChecks(t time.Time, conf *config.Config) {
 		}
 	}
 
-	currentStatus, _ := json.Marshal(curr)
-	err = ioutil.WriteFile("/opt/gogios/js/current.json", currentStatus, 0644)
-	if err != nil {
-		helpers.Log.Println("Result check file could not be written, error return:")
-		helpers.Log.Println(err.Error())
+	// Delete whatever is left in allPrev from the database
+	for i := 0; i < len(allPrev); i++ {
+		for _, database := range conf.Databases {
+			err := database.Database.DeleteRow(allPrev[i], "id")
+			if err != nil {
+				helpers.Log.Println(err.Error())
+			}
+		}
 	}
-	helpers.Log.Printf("%+v", curr)
 }
 
 func getCommandOutput(command string, args []string) (output string) {
@@ -218,9 +219,27 @@ func doEvery(d time.Duration, f func(time.Time, *config.Config), conf *config.Co
 	}
 }
 
-func check(check Check) string {
+func check(check gogios.Check) string {
 	var args = []string{"-c", check.Command}
 	var output = getCommandOutput("/bin/sh", args)
 
 	return output
+}
+
+// initPlugins calls the Init() function on any enabled notifiers and databases
+func initPlugins(conf *config.Config) error {
+	for _, d := range conf.Databases {
+		err := d.Init()
+		if err != nil {
+			return fmt.Errorf("could not initialize database %s: %v", d.Config.Name, err)
+		}
+	}
+	for _, n := range conf.Notifiers {
+		err := n.Init()
+		if err != nil {
+			return fmt.Errorf("could not initialize notifier %s: %v", n.Config.Name, err)
+		}
+	}
+
+	return nil
 }
