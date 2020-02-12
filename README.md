@@ -2,7 +2,7 @@
 
 Simple system to check important services are on remote machines.
 
-[https://github.com/BKasin/gogios/wiki](For help, first check the wiki).
+[For help, first check the wiki](https://github.com/BKasin/gogios/wiki).
 
 ### Telegram
 
