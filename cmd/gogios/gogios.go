@@ -21,6 +21,7 @@ import (
 var (
 	configFile = flag.String("config", "/etc/gogios/gogios.toml", "Config file to use")
 	sampleConf = flag.Bool("sample_conf", false, "Print a sample config file to stdout")
+	notify     = flag.String("notify", "", "Send a message to all notifiers")
 )
 
 func main() {
@@ -31,7 +32,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Create and start the log file
 	helpers.Log.Printf("Gogios pid=%d", os.Getpid())
 
 	// Read and print the config file
@@ -44,6 +44,17 @@ func main() {
 
 	fmt.Println(conf.DatabaseNames())
 	fmt.Println(conf.NotifierNames())
+
+	if *notify != "" {
+		for _, notifier := range conf.Notifiers {
+			err := notifier.Notifier.Notify("External Message", time.Now().Format(time.RFC822), *notify, "Send")
+			if err != nil {
+				helpers.Log.Println(err.Error())
+				os.Exit(1)
+			}
+		}
+		os.Exit(1)
+	}
 
 	// Need at least one database to start
 	if len(conf.DatabaseNames()) == 0 {

@@ -24,6 +24,7 @@ CONFIG_DIR = "/etc/gogios"
 DATABASE_DIR = "/var/lib/gogios"
 WEB_DIR = "/usr/share/gogios/views"
 WEB_VIEWS = "web/views"
+LOGROTATE_DIR = "/etc/logrotate.d"
 
 INIT_SCRIPT = "scripts/init.sh"
 SYSTEMD_SCRIPT = "scripts/gogios.service"
@@ -33,9 +34,11 @@ PREINST_SCRIPT = "scripts/pre-install.sh"
 POSTREMOVE_SCRIPT = "scripts/post-remove.sh"
 PREREMOVE_SCRIPT = "scripts/pre-remove.sh"
 EXAMPLE_CHECKS = "package_files/example.json"
+LOGROTATE_SCRIPT = "package_files/logrotate"
 
 CONFIGURATION_FILES = [
     CONFIG_DIR + '/gogios.toml',
+    LOGROTATE_DIR + '/gogios',
 ]
 
 NMAP_PARSE = "scripts/gogios-parse-nmap"
@@ -61,6 +64,7 @@ fpm_common_args = "-f -s dir --log error \
     --license {} \
     --maintainer {} \
     --config-files {} \
+    --config-files {} \
     --after-install {} \
     --before-install {} \
     --after-remove {} \
@@ -72,6 +76,7 @@ fpm_common_args = "-f -s dir --log error \
     PACKAGE_LICENSE,
     MAINTAINER,
     CONFIG_DIR + '/gogios.toml',
+    LOGROTATE_DIR + '/gogios',
     POSTINST_SCRIPT,
     PREINST_SCRIPT,
     POSTREMOVE_SCRIPT,
@@ -98,7 +103,19 @@ next_version = '2.3'
 
 def print_banner():
     logging.info("""
-    GOGIOS BUILD SCRIPT
+                   _             ____        _ _     _
+  __ _  ___   __ _(_) ___  ___  | __ ) _   _(_) | __| |
+ / _` |/ _ \ / _` | |/ _ \/ __| |  _ \| | | | | |/ _` |
+| (_| | (_) | (_| | | (_) \__ \ | |_) | |_| | | | (_| |
+ \__, |\___/ \__, |_|\___/|___/ |____/ \__,_|_|_|\__,_|
+ |___/       |___/
+ ____            _       _
+/ ___|  ___ _ __(_)_ __ | |_
+\___ \ / __| '__| | '_ \| __|
+ ___) | (__| |  | | |_) | |_
+|____/ \___|_|  |_| .__/ \__|
+                  |_|
+
 """)
 
 
@@ -110,7 +127,7 @@ def create_package_fs(build_root):
 
     dirs = [INSTALL_ROOT_DIR[1:], LOG_DIR[1:],
             PLUGIN_DIR[1:], SCRIPT_DIR[1:], CONFIG_DIR[1:],
-            DATABASE_DIR[1:]]
+            LOGROTATE_DIR[1:], DATABASE_DIR[1:]]
     for d in dirs:
         os.makedirs(os.path.join(build_root, d))
         os.chmod(os.path.join(build_root, d), 0o755)
@@ -137,9 +154,9 @@ def package_scripts(build_root, config_only=False):
             build_root, SCRIPT_DIR[1:], SYSTEMD_SCRIPT.split('/')[1]))
         os.chmod(os.path.join(
             build_root, SCRIPT_DIR[1:], SYSTEMD_SCRIPT.split('/')[1]), 0o644)
-        # shutil.copyfile(LOGROTATE_SCRIPT, os.path.join(
-        #    build_root, LOGROTATE_DIR[1:], "gogios"))
-        #os.chmod(os.path.join(build_root, LOGROTATE_DIR[1:], "gogios"), 0o644)
+        shutil.copyfile(LOGROTATE_SCRIPT, os.path.join(
+            build_root, LOGROTATE_DIR[1:], "gogios"))
+        os.chmod(os.path.join(build_root, LOGROTATE_DIR[1:], "gogios"), 0o644)
         shutil.copyfile(DEFAULT_CONFIG, os.path.join(
             build_root, CONFIG_DIR[1:], "gogios.toml"))
         os.chmod(os.path.join(
