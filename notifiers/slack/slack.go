@@ -50,6 +50,10 @@ func (s *Slack) Notify(check, time, output, status string) error {
 	return nil
 }
 
+func (s *Slack) Init() error {
+	return nil
+}
+
 func init() {
 	notifiers.Add("slack", func() gogios.Notifier {
 		return &Slack{}

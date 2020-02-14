@@ -26,7 +26,7 @@ type Check struct {
 	GoodCount  int       `json:"good_count"`
 	TotalCount int       `json:"total_count"`
 	Asof       time.Time `json:"asof"`
-	Output     string
+	Output     string    `gorm:"type:varchar(1250)"`
 }
 
 type Database interface {
@@ -38,9 +38,6 @@ type Database interface {
 	DeleteRow(check Check, field string) error
 	GetRow(check Check, field string) (Check, error)
 	GetAllRows() ([]Check, error)
-}
-
-type Initializer interface {
 	// Init performs one time setup of the database and returns an error if the
 	// configuration is invalid.
 	Init() error

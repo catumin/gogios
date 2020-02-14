@@ -18,14 +18,3 @@ func NewActiveNotifier(notifier gogios.Notifier, config *NotifierConfig) *Active
 		Config:   config,
 	}
 }
-
-func (a *ActiveNotifier) Init() error {
-	if p, ok := a.Notifier.(gogios.Initializer); ok {
-		err := p.Init()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}

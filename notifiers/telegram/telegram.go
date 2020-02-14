@@ -101,6 +101,10 @@ func (t *Telegram) createHTTPClient() (*http.Client, error) {
 	return client, nil
 }
 
+func (t *Telegram) Init() error {
+	return nil
+}
+
 func init() {
 	notifiers.Add("telegram", func() gogios.Notifier {
 		return &Telegram{}
