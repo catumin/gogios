@@ -48,6 +48,7 @@
 # [[databases.mysql]]
 #   ## MySQL server IP or address
 #   host = "127.0.0.1"
+#   port = 3306
 #
 #   ## Username and password to authentication with
 #   user = ""
