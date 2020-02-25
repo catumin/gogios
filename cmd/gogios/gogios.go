@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bkasin/gogios"
@@ -114,93 +115,102 @@ func runChecks(t time.Time, conf *config.Config) {
 		helpers.Log.Println(err.Error())
 	}
 
+	var wg sync.WaitGroup
+	wg.Add(len(curr))
+
 	// Iterate through all the checks in the check list
 	for i := 0; i < len(curr); i++ {
-		curr[i].Status = "Failed"
+		go func(i int) {
+			defer wg.Done()
+			curr[i].Status = "Failed"
 
-		outputChannel := make(chan string, 1)
-		go func() {
-			commandReturn := check(curr[i])
-			outputChannel <- commandReturn
-		}()
+			outputChannel := make(chan string, 1)
+			go func() {
+				commandReturn := check(curr[i])
+				outputChannel <- commandReturn
+			}()
 
-		var goodCount = 0
-		// Start at 1 because newly added checks will start as 1/0 or 0/0 otherwise
-		var totalCount = 1
+			var goodCount = 0
+			// Start at 1 because newly added checks will start as 1/0 or 0/0 otherwise
+			var totalCount = 1
 
-		prev, err := primaryDB.GetRow(curr[i], "title")
-		if err != nil {
-			helpers.Log.Println("Could not read database into prev variable")
-			helpers.Log.Println(err.Error())
-		}
-
-		if prev.Title != "" {
-			goodCount = prev.GoodCount
-			totalCount = prev.TotalCount + 1
-		}
-
-		select {
-		case output := <-outputChannel:
-			if strings.Contains(output, curr[i].Expected) {
-				curr[i].Status = "Success"
-				goodCount++
-			}
-			curr[i].Output = output
-		case <-time.After(conf.Options.Timeout.Duration):
-			curr[i].Status = "Timed Out"
-		}
-
-		curr[i].Asof = time.Now()
-		curr[i].GoodCount = goodCount
-		curr[i].TotalCount = totalCount
-
-		// Send out notifications through all enabled notifiers
-		if prev.Title != "" && curr[i].Status != prev.Status {
-			for _, notifier := range conf.Notifiers {
-				err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), curr[i].Output, curr[i].Status)
-				if err != nil {
-					helpers.Log.Println(err.Error())
-				}
-			}
-		}
-
-		// Set the current ID equal to the old ID, so that GORM can update the data properly
-		// GORM will assign a new ID if prev.ID is nil
-		curr[i].ID = prev.ID
-
-		// Update or add rows for each configured database, then remove from allPrev[]
-		for _, database := range conf.Databases {
-			err := database.Database.AddRow(curr[i])
+			prev, err := primaryDB.GetRow(curr[i], "title")
 			if err != nil {
+				helpers.Log.Println("Could not read database into prev variable")
 				helpers.Log.Println(err.Error())
 			}
 
-			for old := 0; old < len(allPrev); old++ {
-				if allPrev[old].ID == curr[i].ID {
-					allPrev = append(allPrev[:old], allPrev[old+1:]...)
+			if prev.Title != "" {
+				goodCount = prev.GoodCount
+				totalCount = prev.TotalCount + 1
+			}
+
+			select {
+			case output := <-outputChannel:
+				if strings.Contains(output, curr[i].Expected) {
+					curr[i].Status = "Success"
+					goodCount++
+				}
+				curr[i].Output = output
+			case <-time.After(conf.Options.Timeout.Duration):
+				curr[i].Status = "Timed Out"
+			}
+
+			curr[i].Asof = time.Now()
+			curr[i].GoodCount = goodCount
+			curr[i].TotalCount = totalCount
+
+			// Send out notifications through all enabled notifiers
+			if prev.Title != "" && curr[i].Status != prev.Status {
+				for _, notifier := range conf.Notifiers {
+					err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), curr[i].Output, curr[i].Status)
+					if err != nil {
+						helpers.Log.Println(err.Error())
+					}
 				}
 			}
-		}
 
-		if conf.Options.Verbose {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
-			if err != nil {
-				fmt.Println("Log could not be written. Error return:")
-				fmt.Println(err.Error())
+			// Set the current ID equal to the old ID, so that GORM can update the data properly
+			// GORM will assign a new ID if prev.ID is nil
+			curr[i].ID = prev.ID
+
+			// Update or add rows for each configured database, then remove from allPrev[]
+			for _, database := range conf.Databases {
+				err := database.Database.AddRow(curr[i])
+				if err != nil {
+					helpers.Log.Println(err.Error())
+				}
+
+				for old := 0; old < len(allPrev); old++ {
+					if allPrev[old].ID == curr[i].ID {
+						allPrev = append(allPrev[:old], allPrev[old+1:]...)
+					}
+				}
 			}
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+curr[i].Output)
-			if err != nil {
-				fmt.Println("Log could not be written. Error return:")
-				fmt.Println(err.Error())
+
+			if conf.Options.Verbose {
+				err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
+				if err != nil {
+					fmt.Println("Log could not be written. Error return:")
+					fmt.Println(err.Error())
+				}
+				err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+curr[i].Output)
+				if err != nil {
+					fmt.Println("Log could not be written. Error return:")
+					fmt.Println(err.Error())
+				}
+			} else {
+				err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
+				if err != nil {
+					fmt.Println("Log could not be written. Error return:")
+					fmt.Println(err.Error())
+				}
 			}
-		} else {
-			err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
-			if err != nil {
-				fmt.Println("Log could not be written. Error return:")
-				fmt.Println(err.Error())
-			}
-		}
+			fmt.Println(curr[i].Title)
+		}(i)
 	}
+
+	wg.Wait()
 
 	// Delete whatever is left in allPrev from the database
 	for i := 0; i < len(allPrev); i++ {
