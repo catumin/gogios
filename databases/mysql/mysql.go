@@ -1,39 +1,52 @@
-package sqlite
+package mysql
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/bkasin/gogios"
 	"github.com/bkasin/gogios/databases"
 	"github.com/jinzhu/gorm"
 
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// Sqlite only requires a path to the database file
-type Sqlite struct {
-	DBFile string `toml:"db_file"`
+// MySQL requirements
+type MySQL struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Database string
 }
 
 var sampleConfig = `
-  ## Sqlite3 db path
-  db_file = "/var/lib/gogios/gogios.db"
+  ## MySQL server IP or address
+  host = "127.0.0.1"
+  port = 3306
+
+  ## Username and password to authentication with
+  user = ""
+  password = ""
+
+  ## Name of the database that will be used
+  database = "gogios"
 `
 
-// SampleConfig returns the default config for Sqlite
-func (s *Sqlite) SampleConfig() string {
+// SampleConfig returns the default config for MySQL
+func (m *MySQL) SampleConfig() string {
 	return sampleConfig
 }
 
 // Description returns a brief explanation of the database
-func (s *Sqlite) Description() string {
-	return "Output check data to a Sqlite3 database file"
+func (m *MySQL) Description() string {
+	return "Output check data to a MySQL database"
 }
 
 // AddRow determines whether a record for the check exists in the database
 // and either inserts a new row or updates the existing one
-func (s *Sqlite) AddRow(check gogios.Check) error {
-	db, err := gorm.Open("sqlite3", s.DBFile)
+func (m *MySQL) AddRow(check gogios.Check) error {
+	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return err
 	}
@@ -49,8 +62,8 @@ func (s *Sqlite) AddRow(check gogios.Check) error {
 }
 
 // DeleteRow will remove a row from the check table based on the ID
-func (s *Sqlite) DeleteRow(check gogios.Check, field string) error {
-	db, err := gorm.Open("sqlite3", s.DBFile)
+func (m *MySQL) DeleteRow(check gogios.Check, field string) error {
+	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return err
 	}
@@ -71,10 +84,10 @@ func (s *Sqlite) DeleteRow(check gogios.Check, field string) error {
 
 // GetRow returns a single row. Searches using field (title or id) and returns
 // the last record that matches
-func (s *Sqlite) GetRow(check gogios.Check, field string) (gogios.Check, error) {
+func (m *MySQL) GetRow(check gogios.Check, field string) (gogios.Check, error) {
 	lastRow := gogios.Check{}
 
-	db, err := gorm.Open("sqlite3", s.DBFile)
+	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return lastRow, err
 	}
@@ -94,9 +107,9 @@ func (s *Sqlite) GetRow(check gogios.Check, field string) (gogios.Check, error) 
 }
 
 // GetAllRows returns all the rows in the check table
-func (s *Sqlite) GetAllRows() ([]gogios.Check, error) {
+func (m *MySQL) GetAllRows() ([]gogios.Check, error) {
 	data := []gogios.Check{}
-	db, err := gorm.Open("sqlite3", s.DBFile)
+	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return data, err
 	}
@@ -108,8 +121,8 @@ func (s *Sqlite) GetAllRows() ([]gogios.Check, error) {
 }
 
 // Init creates the database file and tables
-func (s *Sqlite) Init() error {
-	db, err := gorm.Open("sqlite3", s.DBFile)
+func (m *MySQL) Init() error {
+	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return err
 	}
@@ -123,7 +136,7 @@ func (s *Sqlite) Init() error {
 }
 
 func init() {
-	databases.Add("sqlite", func() gogios.Database {
-		return &Sqlite{}
+	databases.Add("mysql", func() gogios.Database {
+		return &MySQL{}
 	})
 }

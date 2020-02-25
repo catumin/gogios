@@ -45,6 +45,7 @@ func main() {
 	fmt.Println(conf.DatabaseNames())
 	fmt.Println(conf.NotifierNames())
 
+	// If -notify is set, then send the message and exit before checking databases
 	if *notify != "" {
 		for _, notifier := range conf.Notifiers {
 			err := notifier.Notifier.Notify("External Message", time.Now().Format(time.RFC822), *notify, "Send")
@@ -69,6 +70,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Set the PATH that will be used by checks
+	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin:/usr/lib/gogios/plugins")
+
+	// Do a round of checks immediately...
+	runChecks(time.Now(), conf)
+
+	// ... and then every $interval
+	go doEvery(conf.Options.Interval.Duration, runChecks, conf)
+
 	// Start serving the website
 	web.ServePage(conf)
 
@@ -76,14 +86,6 @@ func main() {
 	if conf.WebOptions.ExposeAPI {
 		go web.API(conf)
 	}
-
-	// Set the PATH that will be used by checks
-	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin:/usr/lib/gogios/plugins")
-
-	// Do a round of checks immediately...
-	runChecks(time.Now(), conf)
-	// ... and then every $interval
-	doEvery(conf.Options.Interval.Duration, runChecks, conf)
 }
 
 func runChecks(t time.Time, conf *config.Config) {
@@ -240,13 +242,13 @@ func check(check gogios.Check) string {
 // initPlugins calls the Init() function on any enabled notifiers and databases
 func initPlugins(conf *config.Config) error {
 	for _, d := range conf.Databases {
-		err := d.Init()
+		err := d.Database.Init()
 		if err != nil {
 			return fmt.Errorf("could not initialize database %s: %v", d.Config.Name, err)
 		}
 	}
 	for _, n := range conf.Notifiers {
-		err := n.Init()
+		err := n.Notifier.Init()
 		if err != nil {
 			return fmt.Errorf("could not initialize notifier %s: %v", n.Config.Name, err)
 		}

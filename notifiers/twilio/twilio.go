@@ -108,6 +108,10 @@ func (t *Twilio) createHTTPClient() (*http.Client, error) {
 	return client, nil
 }
 
+func (t *Twilio) Init() error {
+	return nil
+}
+
 func init() {
 	notifiers.Add("twilio", func() gogios.Notifier {
 		return &Twilio{}
