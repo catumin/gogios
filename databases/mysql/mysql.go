@@ -8,6 +8,7 @@ import (
 	"github.com/bkasin/gogios/databases"
 	"github.com/jinzhu/gorm"
 
+	// MySQL bindings for GORM
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
@@ -43,9 +44,9 @@ func (m *MySQL) Description() string {
 	return "Output check data to a MySQL database"
 }
 
-// AddRow determines whether a record for the check exists in the database
+// AddCheckRow determines whether a record for the check exists in the database
 // and either inserts a new row or updates the existing one
-func (m *MySQL) AddRow(check gogios.Check) error {
+func (m *MySQL) AddCheckRow(check gogios.Check) error {
 	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return err
@@ -61,8 +62,8 @@ func (m *MySQL) AddRow(check gogios.Check) error {
 	return nil
 }
 
-// DeleteRow will remove a row from the check table based on the ID
-func (m *MySQL) DeleteRow(check gogios.Check, field string) error {
+// DeleteCheckRow will remove a row from the check table based on the ID
+func (m *MySQL) DeleteCheckRow(check gogios.Check, field string) error {
 	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		return err
@@ -82,9 +83,9 @@ func (m *MySQL) DeleteRow(check gogios.Check, field string) error {
 	return nil
 }
 
-// GetRow returns a single row. Searches using field (title or id) and returns
+// GetCheckRow returns a single row. Searches using field (title or id) and returns
 // the last record that matches
-func (m *MySQL) GetRow(check gogios.Check, field string) (gogios.Check, error) {
+func (m *MySQL) GetCheckRow(check gogios.Check, field string) (gogios.Check, error) {
 	lastRow := gogios.Check{}
 
 	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
@@ -106,8 +107,8 @@ func (m *MySQL) GetRow(check gogios.Check, field string) (gogios.Check, error) {
 	return lastRow, nil
 }
 
-// GetAllRows returns all the rows in the check table
-func (m *MySQL) GetAllRows() ([]gogios.Check, error) {
+// GetAllCheckRows returns all the rows in the check table
+func (m *MySQL) GetAllCheckRows() ([]gogios.Check, error) {
 	data := []gogios.Check{}
 	db, err := gorm.Open("mysql", m.User+":"+m.Password+"@("+m.Host+":"+strconv.Itoa(m.Port)+")/"+m.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {

@@ -39,7 +39,7 @@ func API(conf *config.Config) {
 }
 
 func getAllStatuses() []status {
-	allPrev, err := primaryDB.GetAllRows()
+	allPrev, err := primaryDB.GetAllCheckRows()
 	if err != nil {
 		helpers.Log.Println("Could not read database")
 		helpers.Log.Println(err.Error())

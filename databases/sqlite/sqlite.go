@@ -7,6 +7,7 @@ import (
 	"github.com/bkasin/gogios/databases"
 	"github.com/jinzhu/gorm"
 
+	// SQLite bindings for GORM
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
@@ -30,9 +31,9 @@ func (s *Sqlite) Description() string {
 	return "Output check data to a Sqlite3 database file"
 }
 
-// AddRow determines whether a record for the check exists in the database
+// AddCheckRow determines whether a record for the check exists in the database
 // and either inserts a new row or updates the existing one
-func (s *Sqlite) AddRow(check gogios.Check) error {
+func (s *Sqlite) AddCheckRow(check gogios.Check) error {
 	db, err := gorm.Open("sqlite3", s.DBFile)
 	if err != nil {
 		return err
@@ -48,8 +49,8 @@ func (s *Sqlite) AddRow(check gogios.Check) error {
 	return nil
 }
 
-// DeleteRow will remove a row from the check table based on the ID
-func (s *Sqlite) DeleteRow(check gogios.Check, field string) error {
+// DeleteCheckRow will remove a row from the check table based on the ID
+func (s *Sqlite) DeleteCheckRow(check gogios.Check, field string) error {
 	db, err := gorm.Open("sqlite3", s.DBFile)
 	if err != nil {
 		return err
@@ -69,9 +70,9 @@ func (s *Sqlite) DeleteRow(check gogios.Check, field string) error {
 	return nil
 }
 
-// GetRow returns a single row. Searches using field (title or id) and returns
+// GetCheckRow returns a single row. Searches using field (title or id) and returns
 // the last record that matches
-func (s *Sqlite) GetRow(check gogios.Check, field string) (gogios.Check, error) {
+func (s *Sqlite) GetCheckRow(check gogios.Check, field string) (gogios.Check, error) {
 	lastRow := gogios.Check{}
 
 	db, err := gorm.Open("sqlite3", s.DBFile)
@@ -93,8 +94,8 @@ func (s *Sqlite) GetRow(check gogios.Check, field string) (gogios.Check, error) 
 	return lastRow, nil
 }
 
-// GetAllRows returns all the rows in the check table
-func (s *Sqlite) GetAllRows() ([]gogios.Check, error) {
+// GetAllCheckRows returns all the rows in the check table
+func (s *Sqlite) GetAllCheckRows() ([]gogios.Check, error) {
 	data := []gogios.Check{}
 	db, err := gorm.Open("sqlite3", s.DBFile)
 	if err != nil {

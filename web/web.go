@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 	"text/template"
-	"time"
 
 	"github.com/bkasin/gogios"
 	"github.com/bkasin/gogios/helpers"
@@ -53,14 +52,11 @@ func ServePage(conf *config.Config) {
 	var err error
 
 	refresh = int(conf.Options.Interval.Duration.Minutes())
-	data, err = conf.Databases[0].Database.GetAllRows()
+	data, err = conf.Databases[0].Database.GetAllCheckRows()
 	if err != nil {
 		helpers.Log.Println("Failed to read rows from database. Error:")
 		helpers.Log.Println(err.Error())
 	}
-
-	// Annoying way to refresh the webpage data
-	go doEvery(conf.Options.Interval.Duration, updateData, conf)
 
 	// Serve static files while preventing directory listing
 	fs := http.FileServer(http.Dir(LayoutDir))
@@ -83,19 +79,13 @@ func ServePage(conf *config.Config) {
 	}
 }
 
-func updateData(t time.Time, conf *config.Config) {
+// UpdateWebData - Update the table each time new data is available
+func UpdateWebData(conf *config.Config) {
 	var err error
 
-	data, err = conf.Databases[0].Database.GetAllRows()
+	data, err = conf.Databases[0].Database.GetAllCheckRows()
 	if err != nil {
 		helpers.Log.Println("Failed to read rows from database. Error:")
 		helpers.Log.Println(err.Error())
-	}
-}
-
-// doEvery - Run function f every d length of time
-func doEvery(d time.Duration, f func(time.Time, *config.Config), conf *config.Config) {
-	for x := range time.Tick(d) {
-		f(x, conf)
 	}
 }

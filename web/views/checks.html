@@ -52,7 +52,7 @@
           {{range .Checks}}
           {{if (not .DeletedAt)}}
           <tr>
-            <td><a href='#' onclick='replaceText("{{.Title}}", `{{.Output}}`);'>{{.Title}}</a></td>
+            <td><a href='#' onclick='replaceText("{{.Title}}", `{{.Output}}`);'>{{.ID}}. {{.Title}}</a></td>
             <td>
               <script type="text/javascript">
                 if ("{{.Status}}" == "Success") {
@@ -74,7 +74,7 @@
             <td>
               <script type="text/javascript">
                 var date = "{{.Asof}}";
-                document.write(date.substr(0, 19) + " " + date.substr(36, 36));
+                document.write(date.substr(0, 19) + " " + date.slice(-5));
               </script>
             </td>
           </tr>

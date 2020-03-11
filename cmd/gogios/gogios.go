@@ -109,7 +109,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 	// Use the first configured database as the primary for holding data
 	primaryDB := conf.Databases[0].Database
-	allPrev, err := primaryDB.GetAllRows()
+	allPrev, err := primaryDB.GetAllCheckRows()
 	if err != nil {
 		helpers.Log.Println("Could not read database")
 		helpers.Log.Println(err.Error())
@@ -134,7 +134,7 @@ func runChecks(t time.Time, conf *config.Config) {
 			// Start at 1 because newly added checks will start as 1/0 or 0/0 otherwise
 			var totalCount = 1
 
-			prev, err := primaryDB.GetRow(curr[i], "title")
+			prev, err := primaryDB.GetCheckRow(curr[i], "title")
 			if err != nil {
 				helpers.Log.Println("Could not read database into prev variable")
 				helpers.Log.Println(err.Error())
@@ -176,7 +176,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 			// Update or add rows for each configured database, then remove from allPrev[]
 			for _, database := range conf.Databases {
-				err := database.Database.AddRow(curr[i])
+				err := database.Database.AddCheckRow(curr[i])
 				if err != nil {
 					helpers.Log.Println(err.Error())
 				}
@@ -207,6 +207,8 @@ func runChecks(t time.Time, conf *config.Config) {
 				}
 			}
 			fmt.Println(curr[i].Title)
+
+			web.UpdateWebData(conf)
 		}(i)
 	}
 
@@ -215,7 +217,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	// Delete whatever is left in allPrev from the database
 	for i := 0; i < len(allPrev); i++ {
 		for _, database := range conf.Databases {
-			err := database.Database.DeleteRow(allPrev[i], "id")
+			err := database.Database.DeleteCheckRow(allPrev[i], "id")
 			if err != nil {
 				helpers.Log.Println(err.Error())
 			}

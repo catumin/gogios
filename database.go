@@ -19,7 +19,7 @@ type User struct {
 type Check struct {
 	gorm.Model
 
-	Title      string `gorm:"size:255;unique;not null"`
+	Title      string `gorm:"size:255;not null"`
 	Command    string
 	Expected   string
 	Status     string
@@ -34,10 +34,10 @@ type Database interface {
 
 	Description() string
 
-	AddRow(check Check) error
-	DeleteRow(check Check, field string) error
-	GetRow(check Check, field string) (Check, error)
-	GetAllRows() ([]Check, error)
+	AddCheckRow(check Check) error
+	DeleteCheckRow(check Check, field string) error
+	GetCheckRow(check Check, field string) (Check, error)
+	GetAllCheckRows() ([]Check, error)
 	// Init performs one time setup of the database and returns an error if the
 	// configuration is invalid.
 	Init() error
