@@ -1,23 +1,22 @@
 package helpers
 
 import (
-	"log"
 	"os"
+
+	"github.com/google/logger"
 )
 
-var (
-	// Log holds the needed information for the logging service
-	Log *log.Logger
-)
+// StartLogger creates a logger named $name in /var/log/gogios/$filename.log
+func StartLogger(name, filename string, verbose bool) *logger.Logger {
+	logPath := "/var/log/gogios/" + filename + ".log"
 
-func init() {
-	logPath := "/var/log/gogios/service_check.log"
-
-	file, err := os.Create(logPath)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
-		panic(err)
+		logger.Fatalf("Failed to open log file: %v", err)
 	}
+	defer file.Close()
 
-	Log = log.New(file, "", log.LstdFlags|log.Lshortfile)
-	Log.Println("LogFile : " + logPath)
+	goglog := logger.Init(name, verbose, true, file)
+
+	return goglog
 }

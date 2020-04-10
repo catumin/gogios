@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -87,10 +88,10 @@ func (t *Twilio) Notify(check, time, output, status string) error {
 		decoder := json.NewDecoder(resp.Body)
 		err := decoder.Decode(&data)
 		if err == nil {
-			helpers.Log.Println("Twilio message posted. SID: ", data["sid"])
+			fmt.Println("Twilio message posted. SID: ", data["sid"])
 		}
 	} else {
-		helpers.Log.Println("Error sending Twilio message. Return was: ", resp.Status)
+		fmt.Println("Error sending Twilio message. Return was: ", resp.Status)
 	}
 
 	return nil

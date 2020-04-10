@@ -29,7 +29,7 @@ type Config struct {
 type OptionsConfig struct {
 	// Interval on which to check in minutes
 	Interval helpers.Duration
-	// Verbose controls whether check output will be logged
+	// Verbose controls whether check output will be logged, and how much will be logged to stdout
 	Verbose bool
 
 	// Timeout for each check
@@ -194,7 +194,9 @@ var optionsConfig = `
 [options]
   # How often to run checks in minutes
   interval = "3m"
-  # Include check output in the log file
+
+  # Include check output in the log file, and increase
+  # how much information is sent to standard out
   verbose = false
 
   # Per check timeout in seconds

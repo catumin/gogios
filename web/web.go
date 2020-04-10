@@ -2,18 +2,20 @@ package web
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 	"text/template"
 
 	"github.com/bkasin/gogios"
-	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/config"
+	"github.com/google/logger"
 )
 
 var LayoutDir string = "/usr/share/gogios/views"
 var refresh = 3
 var data = []gogios.Check{}
 var bootstrap *template.Template
+var webLogger *logger.Logger
 
 type ViewData struct {
 	Checks  []gogios.Check
@@ -36,9 +38,8 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	// Inject data into template
-	helpers.Log.Println("Checks page accessed")
 
+	// Inject data into template
 	vd := ViewData{
 		Checks:  data,
 		Refresh: refresh * 60,
@@ -51,11 +52,20 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 func ServePage(conf *config.Config) {
 	var err error
 
+	// Prepare the web logger
+	log, err := os.OpenFile("/var/log/gogios/web.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	if err != nil {
+		logger.Fatalf("Failed to open log file: %v", err)
+	}
+	defer log.Close()
+
+	webLogger := logger.Init("WebLog", conf.Options.Verbose, true, log)
+	defer webLogger.Close()
+
 	refresh = int(conf.Options.Interval.Duration.Minutes())
 	data, err = conf.Databases[0].Database.GetAllCheckRows()
 	if err != nil {
-		helpers.Log.Println("Failed to read rows from database. Error:")
-		helpers.Log.Println(err.Error())
+		webLogger.Errorf("Failed to read rows from database. Error:\n%s", err.Error())
 	}
 
 	// Serve static files while preventing directory listing
@@ -85,7 +95,6 @@ func UpdateWebData(conf *config.Config) {
 
 	data, err = conf.Databases[0].Database.GetAllCheckRows()
 	if err != nil {
-		helpers.Log.Println("Failed to read rows from database. Error:")
-		helpers.Log.Println(err.Error())
+		webLogger.Errorf("Failed to read rows from database. Error:\n%s", err.Error())
 	}
 }
