@@ -1,5 +1,7 @@
 # github.com/go-sql-driver/mysql v1.4.1
 github.com/go-sql-driver/mysql
+# github.com/google/logger v1.0.1
+github.com/google/logger
 # github.com/gorilla/mux v1.7.3
 github.com/gorilla/mux
 # github.com/gorilla/websocket v1.2.0
@@ -24,5 +26,9 @@ github.com/nlopes/slack/internal/timex
 github.com/nlopes/slack/slackutilsx
 # github.com/pkg/errors v0.8.0
 github.com/pkg/errors
+# golang.org/x/sys v0.0.0-20190412213103-97732733099d
+golang.org/x/sys/windows
+golang.org/x/sys/windows/svc/eventlog
+golang.org/x/sys/windows/registry
 # google.golang.org/appengine v1.4.0
 google.golang.org/appengine/cloudsql

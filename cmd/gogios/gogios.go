@@ -13,10 +13,10 @@ import (
 
 	"github.com/bkasin/gogios"
 	_ "github.com/bkasin/gogios/databases/all"
-	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/config"
 	_ "github.com/bkasin/gogios/notifiers/all"
 	"github.com/bkasin/gogios/web"
+	"github.com/google/logger"
 )
 
 var (
@@ -33,25 +33,34 @@ func main() {
 		os.Exit(0)
 	}
 
-	helpers.Log.Printf("Gogios pid=%d", os.Getpid())
-
 	// Read and print the config file
 	conf := config.NewConfig()
-	err := conf.GetConfig(*configFile)
+
+	// Prepare the logger for initialization tasks
+	log, err := os.OpenFile("/var/log/gogios/init.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
-		helpers.Log.Println("Check file could not be read, error return:")
-		helpers.Log.Println(err.Error())
+		logger.Fatalf("Failed to open log file: %v", err)
+	}
+	defer log.Close()
+
+	initialLogger := logger.Init("InitialLog", conf.Options.Verbose, true, log)
+	defer initialLogger.Close()
+	initialLogger.Infof("Gogios pid=%d", os.Getpid())
+
+	err = conf.GetConfig(*configFile)
+	if err != nil {
+		initialLogger.Errorf("Config file could not be read, error return:\n%s", err.Error())
 	}
 
-	fmt.Println(conf.DatabaseNames())
-	fmt.Println(conf.NotifierNames())
+	initialLogger.Infoln(conf.DatabaseNames())
+	initialLogger.Infoln(conf.NotifierNames())
 
 	// If -notify is set, then send the message and exit before checking databases
 	if *notify != "" {
 		for _, notifier := range conf.Notifiers {
 			err := notifier.Notifier.Notify("External Message", time.Now().Format(time.RFC822), *notify, "Send")
 			if err != nil {
-				helpers.Log.Println(err.Error())
+				initialLogger.Errorln(err.Error())
 				os.Exit(1)
 			}
 		}
@@ -60,14 +69,13 @@ func main() {
 
 	// Need at least one database to start
 	if len(conf.DatabaseNames()) == 0 {
-		fmt.Println("gogios needs at least one database enabled to start.\nSqlite is the easiest to get started with.")
+		initialLogger.Errorln("gogios needs at least one database enabled to start.\nSqlite is the easiest to get started with.")
 		os.Exit(1)
 	}
 
 	err = initPlugins(conf)
 	if err != nil {
-		fmt.Println("Could not initialize plugins. Error:")
-		fmt.Println(err.Error())
+		initialLogger.Errorf("Could not initialize plugins. Error:\n%s", err.Error())
 		os.Exit(1)
 	}
 
@@ -80,21 +88,30 @@ func main() {
 	// ... and then every $interval
 	go doEvery(conf.Options.Interval.Duration, runChecks, conf)
 
-	// Start serving the website
-	web.ServePage(conf)
-
 	// Expose the REST API
 	if conf.WebOptions.ExposeAPI {
 		go web.API(conf)
 	}
+
+	// Start serving the website
+	web.ServePage(conf)
 }
 
 func runChecks(t time.Time, conf *config.Config) {
+	// Start the service check logger
+	log, err := os.OpenFile("/var/log/gogios/service_check.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	if err != nil {
+		logger.Fatalf("Failed to open log file: %v", err)
+	}
+	defer log.Close()
+
+	checkLogger := logger.Init("ServiceCheck", conf.Options.Verbose, true, log)
+	defer checkLogger.Close()
+
 	// Read the raw check list into memory
 	raw, err := ioutil.ReadFile("/etc/gogios/checks.json")
 	if err != nil {
-		helpers.Log.Println("Check file could not be read, error return:")
-		helpers.Log.Println(err.Error())
+		checkLogger.Errorf("Check file could not be read, error return:\n%s", err.Error())
 		os.Exit(1)
 	}
 
@@ -102,8 +119,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	var curr []gogios.Check
 	err = json.Unmarshal(raw, &curr)
 	if err != nil {
-		helpers.Log.Println("JSON could not be unmarshaled, error return:")
-		helpers.Log.Println(err.Error())
+		checkLogger.Errorf("JSON could not be unmarshaled, error return:\n%s", err.Error())
 		os.Exit(1)
 	}
 
@@ -111,8 +127,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	primaryDB := conf.Databases[0].Database
 	allPrev, err := primaryDB.GetAllCheckRows()
 	if err != nil {
-		helpers.Log.Println("Could not read database")
-		helpers.Log.Println(err.Error())
+		checkLogger.Errorf("Could not read database, error return:\n%s", err.Error())
 	}
 
 	var wg sync.WaitGroup
@@ -126,7 +141,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 			outputChannel := make(chan string, 1)
 			go func() {
-				commandReturn := check(curr[i])
+				commandReturn := check(checkLogger, curr[i])
 				outputChannel <- commandReturn
 			}()
 
@@ -136,8 +151,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 			prev, err := primaryDB.GetCheckRow(curr[i], "title")
 			if err != nil {
-				helpers.Log.Println("Could not read database into prev variable")
-				helpers.Log.Println(err.Error())
+				checkLogger.Errorf("Could not read database into prev variable, error return:\n%s", err.Error())
 			}
 
 			if prev.Title != "" {
@@ -165,7 +179,7 @@ func runChecks(t time.Time, conf *config.Config) {
 				for _, notifier := range conf.Notifiers {
 					err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), curr[i].Output, curr[i].Status)
 					if err != nil {
-						helpers.Log.Println(err.Error())
+						checkLogger.Errorln(err.Error())
 					}
 				}
 			}
@@ -178,7 +192,7 @@ func runChecks(t time.Time, conf *config.Config) {
 			for _, database := range conf.Databases {
 				err := database.Database.AddCheckRow(curr[i])
 				if err != nil {
-					helpers.Log.Println(err.Error())
+					checkLogger.Errorln(err.Error())
 				}
 
 				for old := 0; old < len(allPrev); old++ {
@@ -188,23 +202,9 @@ func runChecks(t time.Time, conf *config.Config) {
 				}
 			}
 
+			checkLogger.Infof("Check %s status: %s as of: %s\n", curr[i].Title, curr[i].Status, curr[i].Asof.Format(time.RFC822))
 			if conf.Options.Verbose {
-				err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
-				if err != nil {
-					fmt.Println("Log could not be written. Error return:")
-					fmt.Println(err.Error())
-				}
-				err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", "Output: \n"+curr[i].Output)
-				if err != nil {
-					fmt.Println("Log could not be written. Error return:")
-					fmt.Println(err.Error())
-				}
-			} else {
-				err = helpers.AppendStringToFile("/var/log/gogios/service_check.log", curr[i].Asof.Format(time.RFC822)+" | Check "+curr[i].Title+" status: "+curr[i].Status)
-				if err != nil {
-					fmt.Println("Log could not be written. Error return:")
-					fmt.Println(err.Error())
-				}
+				checkLogger.Infof("Output: \n%s", curr[i].Output)
 			}
 			fmt.Println(curr[i].Title)
 
@@ -219,17 +219,17 @@ func runChecks(t time.Time, conf *config.Config) {
 		for _, database := range conf.Databases {
 			err := database.Database.DeleteCheckRow(allPrev[i], "id")
 			if err != nil {
-				helpers.Log.Println(err.Error())
+				checkLogger.Errorln(err.Error())
 			}
 		}
 	}
 }
 
-func getCommandOutput(command string, args []string) (output string) {
+func getCommandOutput(logger *logger.Logger, command string, args []string) (output string) {
 	cmd := exec.Command(command, args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		helpers.Log.Printf("cmd.Run() failed with %s\n", err)
+		logger.Errorf("cmd.Run() failed with %s\n", err)
 		return
 	}
 	sha := string(out)
@@ -244,9 +244,9 @@ func doEvery(d time.Duration, f func(time.Time, *config.Config), conf *config.Co
 	}
 }
 
-func check(check gogios.Check) string {
+func check(logger *logger.Logger, check gogios.Check) string {
 	var args = []string{"-c", check.Command}
-	var output = getCommandOutput("/bin/sh", args)
+	var output = getCommandOutput(logger, "/bin/sh", args)
 
 	return output
 }

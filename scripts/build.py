@@ -98,7 +98,7 @@ supported_packages = {
     "freebsd": ["tar"]
 }
 
-next_version = '2.4'
+next_version = '3.0'
 
 
 def print_banner():

@@ -67,7 +67,7 @@ func (t *Telegram) Notify(check, time, output, status string) error {
 		u := "https://api.telegram.org/bot" + t.API + "/sendMessage?chat_id=" + c + "&text=" + message
 		addr, err := url.Parse(u)
 		if err != nil {
-			helpers.Log.Println(fmt.Errorf("Telegram: Unable to parse address:\n'%s'\n\n%s", u, err))
+			fmt.Println(fmt.Errorf("Telegram: Unable to parse address:\n'%s'\n\n%s", u, err))
 			continue
 		}
 
@@ -77,11 +77,11 @@ func (t *Telegram) Notify(check, time, output, status string) error {
 
 			resp, err := t.client.Get(addr.String())
 			if err != nil {
-				helpers.Log.Println(err.Error)
+				fmt.Println(err.Error())
 				return
 			}
 
-			helpers.Log.Printf("Telegram message posted: %s", resp.Status)
+			fmt.Printf("Telegram message posted: %s", resp.Status)
 		}(addr)
 	}
 
