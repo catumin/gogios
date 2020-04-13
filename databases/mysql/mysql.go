@@ -145,7 +145,7 @@ func (m *MySQL) GetCheckHistory(check gogios.Check, amount int) ([]gogios.CheckH
 	}
 	defer db.Close()
 
-	db.Where("CheckID = ?", check.ID).Last(&data, amount)
+	db.Raw("SELECT * FROM check_histories WHERE check_id = ? ORDER BY asof DESC LIMIT ?", check.ID, amount).Scan(&data)
 
 	return data, nil
 }

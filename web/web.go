@@ -1,10 +1,12 @@
 package web
 
 import (
+	"math"
 	"net/http"
 	"os"
 	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/bkasin/gogios"
 	"github.com/bkasin/gogios/helpers/config"
@@ -16,9 +18,19 @@ var refresh = 3
 var data = []gogios.Check{}
 var bootstrap *template.Template
 var webLogger *logger.Logger
+var primaryDB gogios.Database
 
+type checks struct {
+	Title  string
+	Status string
+	Output string
+	Ratio  float64
+	Asof   time.Time
+}
+
+// ViewData is used to replace variables in the HTML templates
 type ViewData struct {
-	Checks  []gogios.Check
+	Checks  []checks
 	Refresh int
 }
 
@@ -38,10 +50,26 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	var table []checks
+
+	for i := 0; i < len(data); i++ {
+		output, err := primaryDB.GetCheckHistory(data[i], 1)
+		if err != nil {
+			webLogger.Errorf("Error getting history of check:\n%v", err.Error())
+		}
+
+		table = append(table, checks{
+			Title:  data[i].Title,
+			Status: data[i].Status,
+			Output: output[0].Output,
+			Ratio:  math.Round((float64(data[i].GoodCount) / float64(data[i].TotalCount) * 100)),
+			Asof:   data[i].Asof,
+		})
+	}
 
 	// Inject data into template
 	vd := ViewData{
-		Checks:  data,
+		Checks:  table,
 		Refresh: refresh * 60,
 	}
 
@@ -62,6 +90,7 @@ func ServePage(conf *config.Config) {
 	webLogger = logger.Init("WebLog", conf.Options.Verbose, true, log)
 	defer webLogger.Close()
 
+	primaryDB = conf.Databases[0].Database
 	refresh = int(conf.Options.Interval.Duration.Minutes())
 	data, err = conf.Databases[0].Database.GetAllChecks()
 	if err != nil {
