@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home Page - Ginger Technology Service Check Engine</title>
+  <title>Home Page - {{.Title}}</title>
 
   <link rel="stylesheet" href="/static/lib/bootstrap/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="/static/css/site.min.css?v=kHvJwvVAK1eJLN4w8xygUR3nbvlLmRwi5yr-OuAO90E" />
@@ -20,7 +20,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/">Ginger Technology Service Check Engine</a>
+        <a class="navbar-brand" href="/">{{.NavBar}}</a>
       </div>
       <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
@@ -45,6 +45,62 @@
     </p>
 
     <hr />
+
+    <div class="container body-content">
+      <div style="margin-top:20px">
+        <script type="text/javascript">
+          function replaceText(title, output) {
+            document.getElementById('CheckName').textContent = title;
+            document.getElementById('CheckOutput').innerHTML = "<xmp>" + output + "</xmp>";
+          }
+        </script>
+        <table class="table table-bordered table-condensed table-hover table-striped">
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Status</th>
+              <th>Good Ratio</th>
+              <th>As Of</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Checks}}
+            <tr>
+              <td><a href='#' onclick='replaceText("{{.Title}}", `{{.Output}}`);'>{{.Title}}</a></td>
+              <td>
+                <script type="text/javascript">
+                  if ("{{.Status}}" == "Success") {
+                    document.write("<font color='green'>{{.Status}}</font>");
+                  }
+                  else if ("{{.Status}}" == "Failed") {
+                    document.write("<font color='red'>Failed</font>");
+                  }
+                  else if ("{{.Status}}" == "Timed Out") {
+                    document.write("<font color='orange'>Timed Out</font>");
+                  }
+                </script>
+              </td>
+              <td>{{.Ratio}}% Uptime</td>
+              <td>
+                <script type="text/javascript">
+                  var date = "{{.Asof}}";
+                  document.write(date.substr(0, 19) + " " + date.slice(-5));
+                </script>
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+
+      </div>
+
+      <br />
+      <hr />
+
+      <h2 id="CheckName">Check Output</h2>
+      <p id="CheckOutput"></p>
+
+      <hr />
 
     <footer>
       <p>&copy; 2018-2020 - Ginger Technology || Bailey Kasin</p>
