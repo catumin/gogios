@@ -35,3 +35,5 @@ debug/
 *.tar.xz
 *.deb
 scripts/prep_release.sh
+test.toml
+gogios.db

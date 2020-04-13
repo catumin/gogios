@@ -46,7 +46,7 @@ func httpsRedirect(w http.ResponseWriter, r *http.Request) {
 // renderChecks renders page after passing some data to the HTML template
 func renderChecks(w http.ResponseWriter, r *http.Request) {
 	// Load template from disk
-	tmpl, err := bootstrap.ParseFiles(LayoutDir + "/checks.html")
+	tmpl, err := template.ParseFiles(LayoutDir + "/checks.html")
 	if err != nil {
 		panic(err)
 	}
@@ -76,6 +76,15 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, vd)
 }
 
+func mainPage(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(LayoutDir + "/index.html")
+	if err != nil {
+		panic(err)
+	}
+
+	tmpl.Execute(w, nil)
+}
+
 // ServePage hosts a server based on options from the config file
 func ServePage(conf *config.Config) {
 	var err error
@@ -98,14 +107,8 @@ func ServePage(conf *config.Config) {
 	}
 	webLogger.Infof("Refresh rate: %d", refresh)
 
-	// Serve static files while preventing directory listing
-	fs := http.FileServer(http.Dir(LayoutDir))
-	bootstrap, err = template.ParseFiles(LayoutDir + "/checks.html")
-	if err != nil {
-		panic(err)
-	}
-
-	http.Handle("/", fs)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(LayoutDir+"/static"))))
+	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/checks", renderChecks)
 
 	if conf.WebOptions.SSL {
