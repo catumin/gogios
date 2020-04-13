@@ -59,14 +59,15 @@ func ServePage(conf *config.Config) {
 	}
 	defer log.Close()
 
-	webLogger := logger.Init("WebLog", conf.Options.Verbose, true, log)
+	webLogger = logger.Init("WebLog", conf.Options.Verbose, true, log)
 	defer webLogger.Close()
 
 	refresh = int(conf.Options.Interval.Duration.Minutes())
-	data, err = conf.Databases[0].Database.GetAllCheckRows()
+	data, err = conf.Databases[0].Database.GetAllChecks()
 	if err != nil {
 		webLogger.Errorf("Failed to read rows from database. Error:\n%s", err.Error())
 	}
+	webLogger.Infof("Refresh rate: %d", refresh)
 
 	// Serve static files while preventing directory listing
 	fs := http.FileServer(http.Dir(LayoutDir))
@@ -93,8 +94,8 @@ func ServePage(conf *config.Config) {
 func UpdateWebData(conf *config.Config) {
 	var err error
 
-	data, err = conf.Databases[0].Database.GetAllCheckRows()
+	data, err = conf.Databases[0].Database.GetAllChecks()
 	if err != nil {
-		webLogger.Errorf("Failed to read rows from database. Error:\n%s", err.Error())
+		webLogger.Errorf("Failed to update webpage data from database. Error:\n%s", err.Error())
 	}
 }

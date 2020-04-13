@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bkasin/gogios"
+	"github.com/bkasin/gogios/api"
 	_ "github.com/bkasin/gogios/databases/all"
 	"github.com/bkasin/gogios/helpers/config"
 	_ "github.com/bkasin/gogios/notifiers/all"
@@ -90,7 +91,7 @@ func main() {
 
 	// Expose the REST API
 	if conf.WebOptions.ExposeAPI {
-		go web.API(conf)
+		go api.API(conf)
 	}
 
 	// Start serving the website
@@ -125,7 +126,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 	// Use the first configured database as the primary for holding data
 	primaryDB := conf.Databases[0].Database
-	allPrev, err := primaryDB.GetAllCheckRows()
+	allPrev, err := primaryDB.GetAllChecks()
 	if err != nil {
 		checkLogger.Errorf("Could not read database, error return:\n%s", err.Error())
 	}
@@ -149,7 +150,7 @@ func runChecks(t time.Time, conf *config.Config) {
 			// Start at 1 because newly added checks will start as 1/0 or 0/0 otherwise
 			var totalCount = 1
 
-			prev, err := primaryDB.GetCheckRow(curr[i], "title")
+			prev, err := primaryDB.GetCheck(curr[i].Title, "title")
 			if err != nil {
 				checkLogger.Errorf("Could not read database into prev variable, error return:\n%s", err.Error())
 			}
@@ -159,13 +160,14 @@ func runChecks(t time.Time, conf *config.Config) {
 				totalCount = prev.TotalCount + 1
 			}
 
+			var Output string
 			select {
 			case output := <-outputChannel:
 				if strings.Contains(output, curr[i].Expected) {
 					curr[i].Status = "Success"
 					goodCount++
 				}
-				curr[i].Output = output
+				Output = output
 			case <-time.After(conf.Options.Timeout.Duration):
 				curr[i].Status = "Timed Out"
 			}
@@ -177,7 +179,7 @@ func runChecks(t time.Time, conf *config.Config) {
 			// Send out notifications through all enabled notifiers
 			if prev.Title != "" && curr[i].Status != prev.Status {
 				for _, notifier := range conf.Notifiers {
-					err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), curr[i].Output, curr[i].Status)
+					err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), Output, curr[i].Status)
 					if err != nil {
 						checkLogger.Errorln(err.Error())
 					}
@@ -190,7 +192,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 			// Update or add rows for each configured database, then remove from allPrev[]
 			for _, database := range conf.Databases {
-				err := database.Database.AddCheckRow(curr[i])
+				err := database.Database.AddCheck(curr[i], Output)
 				if err != nil {
 					checkLogger.Errorln(err.Error())
 				}
@@ -204,7 +206,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 			checkLogger.Infof("Check %s status: %s as of: %s\n", curr[i].Title, curr[i].Status, curr[i].Asof.Format(time.RFC822))
 			if conf.Options.Verbose {
-				checkLogger.Infof("Output: \n%s", curr[i].Output)
+				checkLogger.Infof("Output: \n%s", Output)
 			}
 			fmt.Println(curr[i].Title)
 
@@ -217,7 +219,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	// Delete whatever is left in allPrev from the database
 	for i := 0; i < len(allPrev); i++ {
 		for _, database := range conf.Databases {
-			err := database.Database.DeleteCheckRow(allPrev[i], "id")
+			err := database.Database.DeleteCheck(allPrev[i], "id")
 			if err != nil {
 				checkLogger.Errorln(err.Error())
 			}

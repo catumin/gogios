@@ -50,9 +50,8 @@
         </thead>
         <tbody>
           {{range .Checks}}
-          {{if (not .DeletedAt)}}
           <tr>
-            <td><a href='#' onclick='replaceText("{{.Title}}", `{{.Output}}`);'>{{.ID}}. {{.Title}}</a></td>
+            <td><a href='#' onclick='replaceText("{{.Title}}", `test`);'>{{.Title}}</a></td>
             <td>
               <script type="text/javascript">
                 if ("{{.Status}}" == "Success") {
@@ -68,7 +67,7 @@
             </td>
             <td>
               <script type="text/javascript">
-                document.write(Math.round({{.GoodCount }} / {{.TotalCount}} * 100) + "% Uptime");
+                document.write(Math.round({{.GoodCount}} / {{.TotalCount}} * 100) + "% Uptime");
               </script>
             </td>
             <td>
@@ -78,7 +77,6 @@
               </script>
             </td>
           </tr>
-          {{end}}
           {{end}}
         </tbody>
       </table>
@@ -99,9 +97,3 @@
 </body>
 
 </html>
-{{range .Items}}
-<div class="item">
-  {{template "header" .Name}}
-  <span class="price">${{.Price}}</span>
-</div>
-{{end}}
