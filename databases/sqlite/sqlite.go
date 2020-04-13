@@ -132,7 +132,7 @@ func (s *Sqlite) GetCheckHistory(check gogios.Check, amount int) ([]gogios.Check
 	}
 	defer db.Close()
 
-	db.Raw("SELECT * FROM check_histories WHERE check_id = ? ORDER BY asof desc limit ?", check.ID, amount)
+	db.Raw("SELECT * FROM check_histories WHERE check_id = ? ORDER BY asof DESC LIMIT ?", check.ID, amount).Scan(&data)
 
 	return data, nil
 }
