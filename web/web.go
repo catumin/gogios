@@ -63,6 +63,7 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 		Refresh: refresh * 60,
 		Title:   title,
 		NavBar:  navbar,
+		Logo:    logo,
 	}
 
 	tmpl.Execute(w, vd)
@@ -80,6 +81,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		Checks: table,
 		Title:  title,
 		NavBar: navbar,
+		Logo:   logo,
 	}
 
 	tmpl.Execute(w, vd)

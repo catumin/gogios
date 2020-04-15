@@ -48,7 +48,9 @@
   nav_bar = "Ginger Technology Service Check Engine"
 
   # A small logo that can appear in the navigation bar
-  logo = "/usr/share/gogios/logo.jpg"
+  # Place the file in /usr/share/gogios/views/static, and then enter the name of the file here
+  # The logo file should be 150x50
+  logo = "gogios.png"
 
 
 ###########################
