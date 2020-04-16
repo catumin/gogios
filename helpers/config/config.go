@@ -57,6 +57,11 @@ type WebOptionsConfig struct {
 	APIIP string `toml:"api_ip"`
 	// Port to listen for API connections on
 	APIPort int `toml:"api_port"`
+
+	// Web interface branding
+	Title  string
+	NavBar string `toml:"nav_bar"`
+	Logo   string
 }
 
 // NewConfig provides base config options that get replaced by the TOML options
@@ -79,6 +84,9 @@ func NewConfig() *Config {
 			ExposeAPI: true,
 			APIIP:     "127.0.0.1",
 			APIPort:   8413,
+			Title:     "Ginger Technology Service Check Engine",
+			NavBar:    "Ginger Technology Service Check Engine",
+			Logo:      "/usr/share/gogios/logo.jpg",
 		},
 		Notifiers: make([]*models.ActiveNotifier, 0),
 		Databases: make([]*models.ActiveDatabase, 0),
@@ -227,6 +235,20 @@ var webConfig = `
   expose_api = true
   api_ip = "127.0.0.1"
   api_port = 8413
+
+  # BRANDING
+  # The options in this section will alter the branding on the web interface
+
+  # The text that shows after the current page in the web browser's task bar
+  title = "Ginger Technology Service Check Engine"
+
+  # The text that shows before the tabs on the navigation bar
+  nav_bar = "Ginger Technology Service Check Engine"
+
+  # A small logo that can appear in the navigation bar
+  # Place the file in /usr/share/gogios/views/static, and then enter the name of the file here
+  # The logo file should be 150x50
+  logo = "gogios.png"
 
 `
 

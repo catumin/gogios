@@ -5,32 +5,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="refresh" content="{{.Refresh}}" />
-  <title>Home Page - Ginger Technology Service Check Engine</title>
+  <title>Home Page - {{.Title}}</title>
 
-  <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="css/site.min.css?v=kHvJwvVAK1eJLN4w8xygUR3nbvlLmRwi5yr-OuAO90E" />
+  <link rel="stylesheet" href="/static/lib/bootstrap/dist/css/bootstrap.css" />
+  <link rel="stylesheet" href="/static/css/site.css" />
 </head>
 
 <body>
-  <nav class="navbar navbar-default navbar-fixed-top">
+  <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
     <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="/">Ginger Technology Service Check Engine</a>
-      </div>
-      <div class="navbar-collapse collapse">
-        <ul class="nav navbar-nav">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="https://github.com/BKasin/gogios/wiki">About</a></li>
+      <a class="navbar-brand" href="/"><img src="/static/{{.Logo}}" alt="" width="150" height="50"> {{.NavBar}}</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+        aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div id="navbarResponsive" class="collapse navbar-collapse">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="https://github.com/BKasin/gogios/wiki">About</a></li>
         </ul>
       </div>
     </div>
-  </nav>
+  </div>
   <div class="container body-content">
     <div style="margin-top:20px">
       <script type="text/javascript">
@@ -90,6 +86,10 @@
     <footer>
       <p>&copy; 2018-2020 - Ginger Technology || Bailey Kasin</p>
     </footer>
+  </div>
+
+  <script src="/static/lib/jquery/dist/jquery.min.js"></script>
+  <script src="/static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
 </body>
 
 </html>

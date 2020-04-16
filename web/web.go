@@ -14,9 +14,11 @@ import (
 )
 
 var LayoutDir string = "/usr/share/gogios/views"
+var title string
+var navbar string
+var logo string
 var refresh = 3
 var data = []gogios.Check{}
-var bootstrap *template.Template
 var webLogger *logger.Logger
 var primaryDB gogios.Database
 
@@ -32,6 +34,9 @@ type checks struct {
 type ViewData struct {
 	Checks  []checks
 	Refresh int
+	Title   string
+	NavBar  string
+	Logo    string
 }
 
 // httpsRedirect redirects HTTP requests to HTTPS
@@ -46,31 +51,37 @@ func httpsRedirect(w http.ResponseWriter, r *http.Request) {
 // renderChecks renders page after passing some data to the HTML template
 func renderChecks(w http.ResponseWriter, r *http.Request) {
 	// Load template from disk
-	tmpl, err := bootstrap.ParseFiles(LayoutDir + "/checks.html")
+	tmpl, err := template.ParseFiles(LayoutDir + "/checks.html")
 	if err != nil {
 		panic(err)
 	}
-	var table []checks
-
-	for i := 0; i < len(data); i++ {
-		output, err := primaryDB.GetCheckHistory(data[i], 1)
-		if err != nil {
-			webLogger.Errorf("Error getting history of check:\n%v", err.Error())
-		}
-
-		table = append(table, checks{
-			Title:  data[i].Title,
-			Status: data[i].Status,
-			Output: output[0].Output,
-			Ratio:  math.Round((float64(data[i].GoodCount) / float64(data[i].TotalCount) * 100)),
-			Asof:   data[i].Asof,
-		})
-	}
+	table := genTable()
 
 	// Inject data into template
 	vd := ViewData{
 		Checks:  table,
 		Refresh: refresh * 60,
+		Title:   title,
+		NavBar:  navbar,
+		Logo:    logo,
+	}
+
+	tmpl.Execute(w, vd)
+}
+
+func mainPage(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(LayoutDir + "/index.html")
+	if err != nil {
+		panic(err)
+	}
+	table := genTable()
+
+	// Inject data into template
+	vd := ViewData{
+		Checks: table,
+		Title:  title,
+		NavBar: navbar,
+		Logo:   logo,
 	}
 
 	tmpl.Execute(w, vd)
@@ -92,20 +103,18 @@ func ServePage(conf *config.Config) {
 
 	primaryDB = conf.Databases[0].Database
 	refresh = int(conf.Options.Interval.Duration.Minutes())
+	title = conf.WebOptions.Title
+	navbar = conf.WebOptions.NavBar
+	logo = conf.WebOptions.Logo
+
 	data, err = conf.Databases[0].Database.GetAllChecks()
 	if err != nil {
 		webLogger.Errorf("Failed to read rows from database. Error:\n%s", err.Error())
 	}
 	webLogger.Infof("Refresh rate: %d", refresh)
 
-	// Serve static files while preventing directory listing
-	fs := http.FileServer(http.Dir(LayoutDir))
-	bootstrap, err = template.ParseFiles(LayoutDir + "/checks.html")
-	if err != nil {
-		panic(err)
-	}
-
-	http.Handle("/", fs)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(LayoutDir+"/static"))))
+	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/checks", renderChecks)
 
 	if conf.WebOptions.SSL {
@@ -127,4 +136,25 @@ func UpdateWebData(conf *config.Config) {
 	if err != nil {
 		webLogger.Errorf("Failed to update webpage data from database. Error:\n%s", err.Error())
 	}
+}
+
+func genTable() []checks {
+	var table []checks
+
+	for i := 0; i < len(data); i++ {
+		output, err := primaryDB.GetCheckHistory(data[i], 1)
+		if err != nil {
+			webLogger.Errorf("Error getting history of check:\n%v", err.Error())
+		}
+
+		table = append(table, checks{
+			Title:  data[i].Title,
+			Status: data[i].Status,
+			Output: output[0].Output,
+			Ratio:  math.Round((float64(data[i].GoodCount) / float64(data[i].TotalCount) * 100)),
+			Asof:   data[i].Asof,
+		})
+	}
+
+	return table
 }

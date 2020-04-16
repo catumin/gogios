@@ -6,7 +6,9 @@
 [options]
   # How often to run checks in minutes
   interval = "3m"
-  # Include check output in the log file
+
+  # Include check output in the log file, and increase
+  # how much information is sent to standard out
   verbose = false
 
   # Per check timeout in seconds
@@ -35,6 +37,20 @@
   expose_api = true
   api_ip = "127.0.0.1"
   api_port = 8413
+
+  # BRANDING
+  # The options in this section will alter the branding on the web interface
+
+  # The text that shows after the current page in the web browser's task bar
+  title = "Ginger Technology Service Check Engine"
+
+  # The text that shows before the tabs on the navigation bar
+  nav_bar = "Ginger Technology Service Check Engine"
+
+  # A small logo that can appear in the navigation bar
+  # Place the file in /usr/share/gogios/views/static, and then enter the name of the file here
+  # The logo file should be 150x50
+  logo = "gogios.png"
 
 
 ###########################
