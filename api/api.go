@@ -21,12 +21,13 @@ type status struct {
 	TotalCount int
 }
 
-var primaryDB gogios.Database
-var configuration *config.Config
-var apiLogger *logger.Logger
+var (
+	primaryDB gogios.Database
+	apiLogger *logger.Logger
+)
 
 // API is the main handler for all API calls
-func API(conf *config.Config) {
+func API() {
 	// Prepare the web logger
 	log, err := os.OpenFile("/var/log/gogios/api.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
@@ -34,11 +35,10 @@ func API(conf *config.Config) {
 	}
 	defer log.Close()
 
-	apiLogger = logger.Init("APILog", conf.Options.Verbose, true, log)
+	apiLogger = logger.Init("APILog", config.Conf.Options.Verbose, true, log)
 	defer apiLogger.Close()
 
-	primaryDB = conf.Databases[0].Database
-	configuration = conf
+	primaryDB = config.Conf.Databases[0].Database
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/", apiHome)
@@ -54,7 +54,7 @@ func API(conf *config.Config) {
 	secureRouter.HandleFunc("/createUser", createNewUser)
 
 	apiLogger.Infoln("Starting API")
-	err = http.ListenAndServe(conf.WebOptions.APIIP+":"+strconv.Itoa(conf.WebOptions.APIPort), router)
+	err = http.ListenAndServe(config.Conf.WebOptions.APIIP+":"+strconv.Itoa(config.Conf.WebOptions.APIPort), router)
 	if err != nil {
 		apiLogger.Fatalln(err.Error())
 	}

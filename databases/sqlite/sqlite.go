@@ -21,10 +21,19 @@ var sampleConfig = `
   ## Sqlite3 db path
   db_file = "/var/lib/gogios/gogios.db"
 `
+var subConfig = `
+  ## Sqlite3 db path
+  db_file = "%s"
+`
 
 // SampleConfig returns the default config for Sqlite
 func (s *Sqlite) SampleConfig() string {
 	return sampleConfig
+}
+
+// SubConfig returns the default config ready for variable substitution
+func (s *Sqlite) SubConfig() string {
+	return subConfig
 }
 
 // Description returns a brief explanation of the database

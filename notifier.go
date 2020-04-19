@@ -2,6 +2,7 @@ package gogios
 
 type Notifier interface {
 	SampleConfig() string
+	SubConfig() string
 
 	Description() string
 

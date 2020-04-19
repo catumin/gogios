@@ -31,8 +31,22 @@ var sampleConfig = `
   response_timeout = "10s"
 `
 
+var subConfig = `
+  ## Telegram bot API key
+  api = "%s"
+  ## Chat to post to, usually a negative number for groups and a positive one for direct
+  chats = ["%s"]
+
+  ## HTTP response timeout (default: 10s)
+  response_timeout = "%ss"
+`
+
 func (t *Telegram) SampleConfig() string {
 	return sampleConfig
+}
+
+func (t *Telegram) SubConfig() string {
+	return subConfig
 }
 
 func (t *Telegram) Description() string {

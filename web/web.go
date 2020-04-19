@@ -13,14 +13,18 @@ import (
 	"github.com/google/logger"
 )
 
-var LayoutDir string = "/usr/share/gogios/views"
-var title string
-var navbar string
-var logo string
-var refresh = 3
-var data = []gogios.Check{}
-var webLogger *logger.Logger
-var primaryDB gogios.Database
+var (
+	// layoutDir is where all the files for hosting the web interface
+	// are stored
+	layoutDir = "/usr/share/gogios/views"
+	title     string
+	navbar    string
+	logo      string
+	refresh   = 3
+	data      = []gogios.Check{}
+	webLogger *logger.Logger
+	primaryDB gogios.Database
+)
 
 type checks struct {
 	Title  string
@@ -39,22 +43,7 @@ type ViewData struct {
 	Logo    string
 }
 
-// httpsRedirect redirects HTTP requests to HTTPS
-func httpsRedirect(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(
-		w, r,
-		"https://"+r.Host+r.URL.String(),
-		http.StatusMovedPermanently,
-	)
-}
-
-// renderChecks renders page after passing some data to the HTML template
-func renderChecks(w http.ResponseWriter, r *http.Request) {
-	// Load template from disk
-	tmpl, err := template.ParseFiles(LayoutDir + "/checks.html")
-	if err != nil {
-		panic(err)
-	}
+func checksPage(w http.ResponseWriter, r *http.Request) {
 	table := genTable()
 
 	// Inject data into template
@@ -66,14 +55,10 @@ func renderChecks(w http.ResponseWriter, r *http.Request) {
 		Logo:    logo,
 	}
 
-	tmpl.Execute(w, vd)
+	render(w, "checks.html", vd, webLogger)
 }
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(LayoutDir + "/index.html")
-	if err != nil {
-		panic(err)
-	}
 	table := genTable()
 
 	// Inject data into template
@@ -84,11 +69,11 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		Logo:   logo,
 	}
 
-	tmpl.Execute(w, vd)
+	render(w, "index.html", vd, webLogger)
 }
 
 // ServePage hosts a server based on options from the config file
-func ServePage(conf *config.Config) {
+func ServePage() {
 	var err error
 
 	// Prepare the web logger
@@ -98,41 +83,69 @@ func ServePage(conf *config.Config) {
 	}
 	defer log.Close()
 
-	webLogger = logger.Init("WebLog", conf.Options.Verbose, true, log)
+	webLogger = logger.Init("WebLog", config.Conf.Options.Verbose, true, log)
 	defer webLogger.Close()
 
-	primaryDB = conf.Databases[0].Database
-	refresh = int(conf.Options.Interval.Duration.Minutes())
-	title = conf.WebOptions.Title
-	navbar = conf.WebOptions.NavBar
-	logo = conf.WebOptions.Logo
+	primaryDB = config.Conf.Databases[0].Database
+	refresh = int(config.Conf.Options.Interval.Duration.Minutes())
+	title = config.Conf.WebOptions.Title
+	navbar = config.Conf.WebOptions.NavBar
+	logo = config.Conf.WebOptions.Logo
 
-	data, err = conf.Databases[0].Database.GetAllChecks()
+	data, err = config.Conf.Databases[0].Database.GetAllChecks()
 	if err != nil {
 		webLogger.Errorf("Failed to read rows from database. Error:\n%s", err.Error())
 	}
 	webLogger.Infof("Refresh rate: %d", refresh)
 
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(LayoutDir+"/static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(layoutDir+"/static"))))
 	http.HandleFunc("/", mainPage)
-	http.HandleFunc("/checks", renderChecks)
+	http.HandleFunc("/checks", checksPage)
 
-	if conf.WebOptions.SSL {
-		go http.ListenAndServeTLS(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPSPort), conf.WebOptions.TLSCert, conf.WebOptions.TLSKey, nil)
+	if config.Conf.WebOptions.SSL {
+		go http.ListenAndServeTLS(config.Conf.WebOptions.IP+":"+strconv.Itoa(config.Conf.WebOptions.HTTPSPort), config.Conf.WebOptions.TLSCert, config.Conf.WebOptions.TLSKey, nil)
 	}
 
-	if conf.WebOptions.Redirect {
-		http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), http.HandlerFunc(httpsRedirect))
+	if config.Conf.WebOptions.Redirect {
+		err = http.ListenAndServe(config.Conf.WebOptions.IP+":"+strconv.Itoa(config.Conf.WebOptions.HTTPPort), http.HandlerFunc(httpsRedirect))
+		if err != nil {
+			webLogger.Errorf("Web server crashed. Error:\n%v", err.Error())
+		}
 	} else {
-		http.ListenAndServe(conf.WebOptions.IP+":"+strconv.Itoa(conf.WebOptions.HTTPPort), nil)
+		err = http.ListenAndServe(config.Conf.WebOptions.IP+":"+strconv.Itoa(config.Conf.WebOptions.HTTPPort), nil)
+		if err != nil {
+			webLogger.Errorf("Web server crashed. Error:\n%v", err.Error())
+		}
+	}
+}
+
+// httpsRedirect redirects HTTP requests to HTTPS
+func httpsRedirect(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(
+		w, r,
+		"https://"+r.Host+r.URL.String(),
+		http.StatusMovedPermanently,
+	)
+}
+
+func render(w http.ResponseWriter, filename string, data interface{}, logger *logger.Logger) {
+	tmpl, err := template.ParseFiles(layoutDir + "/" + filename)
+	if err != nil {
+		logger.Errorln(err.Error())
+		http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
+	}
+
+	if err := tmpl.Execute(w, data); err != nil {
+		logger.Errorln(err.Error())
+		http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
 	}
 }
 
 // UpdateWebData - Update the table each time new data is available
-func UpdateWebData(conf *config.Config) {
+func UpdateWebData() {
 	var err error
 
-	data, err = conf.Databases[0].Database.GetAllChecks()
+	data, err = config.Conf.Databases[0].Database.GetAllChecks()
 	if err != nil {
 		webLogger.Errorf("Failed to update webpage data from database. Error:\n%s", err.Error())
 	}

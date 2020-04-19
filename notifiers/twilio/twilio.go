@@ -38,8 +38,26 @@ var sampleConfig = `
   response_timeout = "10s"
 `
 
+var subConfig = `
+  ## Account SID
+  sid = "%s"
+  ## Account auth token
+  token = "%s"
+  ## Phone number for your Twilio account
+  twilio_number = "%s"
+  ## Phone number that should be texted with the notification
+  send_to = "%s"
+
+  ## HTTP response timeout (default: 10s)
+  response_timeout = "%ss"
+`
+
 func (t *Twilio) SampleConfig() string {
 	return sampleConfig
+}
+
+func (t *Twilio) SubConfig() string {
+	return subConfig
 }
 
 func (t *Twilio) Description() string {

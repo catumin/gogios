@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gogios First Time Setup</title>
+
+    <link rel="stylesheet" href="/static/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/site.css" />
+</head>
+
+<body>
+    <style type="text/css">
+        .error {
+            color: red;
+        }
+    </style>
+
+    <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/"><img src="/static/gogios.png" alt="" width="150" height="50">
+                gogios First Time Setup</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="navbarResponsive" class="collapse navbar-collapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://github.com/BKasin/gogios/wiki">About</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        <div style="margin-top:20px">
+            <h1>Welcome to gogios!</h1>
+            <h2>This form is here to help you with first time setup</h2>
+
+            <form action="/" method="POST" novalidate>
+                <h4>First is the creation of the first admin</h4>
+                <label>Admin name:</label><br />
+                <input type="text" name="name"><br />
+                <label>Admin username:</label><br />
+                {{ with .Errors.username }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="text" name="username"><br />
+                <label>Admin password:</label><br />
+                {{ with .Errors.password }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="password" name="password"><br />
+                <br />
+
+                <h4>Now for initial gogios configuration</h4>
+                <label>How often should checks run (in minutes):</label><br />
+                {{ with .Errors.interval }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="number" name="interval" value="3"><br />
+                <label>How long should gogios wait for output from a check (in seconds):</label><br />
+                {{ with .Errors.timeout }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="number" name="timeout" value="60"><br />
+                <br />
+
+                <h4>gogios web configuration</h4>
+                <label>What IP address should gogios listen on? (127.0.0.1 for localhost only, 0.0.0.0 for any, or
+                    specify the address of an interface to only accept connections from that network):</label><br />
+                {{ with .Errors.webip }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="text" name="webip" value="127.0.0.1"><br />
+                <br />
+                <label>Which port should the web server listen on?</label><br />
+                {{ with .Errors.webport }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="number" name="webport" value="8411"><br />
+                <br />
+
+                <label>Should the web API be accessible:</label><br />
+                {{ with .Errors.api }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="radio" id="yes" name="api" value="yes">
+                <label for="yes">Yes</label><br />
+                <input type="radio" id="no" name="api" value="no">
+                <label for="no">No</label><br />
+
+                <div class="apiopen" id="yes">
+                    <label>What IP address should the API listen on? (127.0.0.1 for localhost only, 0.0.0.0 for any, or
+                        specify the address of an interface to only accept connections from that network):</label><br />
+                    {{ with .Errors.apiip }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="text" name="apiip" value="127.0.0.1"><br />
+                    <br />
+                    <label>Which port should the web server listen on?</label><br />
+                    {{ with .Errors.apiport }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="number" name="apiport" value="8413"><br />
+                    <br />
+                </div>
+
+                <label>What should the title of this gogios instance be:</label><br />
+                {{ with .Errors.title }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <input type="text" name="title" value="Ginger Technology Service Check Engine"><br />
+                <br />
+
+                <p>Now for a bit of database configuration.</p>
+                <label>Which database should be used (a fallback database can be configured later):</label><br />
+                {{ with .Errors.database }}
+                <p class="error">{{ . }}</p>
+                {{ end }}
+                <select name="database" id="database">
+                    <option value="sqlite">sqlite</option>
+                    <option value="mysql">mysql</option>
+                </select>
+                <br />
+
+                <div class="dbtype" id="sqlite">
+                    <label>Path to gogios database file:</label><br />
+                    {{ with .Errors.dbpath }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="text" name="dbpath" value="/var/lib/gogios/gogios.db"><br />
+                </div>
+
+                <div class="dbtype" id="mysql">
+                    <label>IP/FQDN of the MySQL server:</label><br />
+                    {{ with .Errors.myurl }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="text" name="myurl" value="127.0.0.1"><br />
+                    <label>Port of the MySQL server:</label><br />
+                    {{ with .Errors.myport }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="number" name="myport" value="3306"><br />
+                    <label>Username for the MySQL server:</label><br />
+                    {{ with .Errors.myuser }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="text" name="myuser"><br />
+                    <label>Password for the MySQL server:</label><br />
+                    {{ with .Errors.mypass }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="password" name="mypass"><br />
+                    <label>Name of the gogios database in the MySQL server:</label><br />
+                    {{ with .Errors.mydb }}
+                    <p class="error">{{ . }}</p>
+                    {{ end }}
+                    <input type="text" name="mydb" value="gogios"><br />
+                </div>
+
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+
+        <hr />
+
+        <footer>
+            <p>&copy; 2018-2020 - Ginger Technology || Bailey Kasin</p>
+        </footer>
+    </div>
+
+    <script src="/static/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            toggleFields();
+
+            $("#database").change(function () {
+                toggleFields();
+            });
+        });
+
+        $(document).ready(function () {
+            $('input[type="radio"]').click(function () {
+                var inputValue = $(this).attr("value");
+                if (inputValue == "yes") {
+                    $(".apiopen").show();
+                } else {
+                    $(".apiopen").hide();
+                }
+            });
+        });
+
+        function toggleFields() {
+            $(".dbtype").hide()
+            $("#" + $("#database").val()).show();
+        }
+    </script>
+</body>
+
+</html>
