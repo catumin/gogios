@@ -371,6 +371,7 @@ func PrintSetupConfig(db string) string {
 		notifier := creator()
 
 		nfs += printConfig(nname, notifier, "notifiers", true)
+		nfs += "\n\n"
 	}
 
 	printConfig := fmt.Sprint(header, subOptionsConfig, subWebConfig, databaseHeader, dbs, notifierHeader, nfs)
