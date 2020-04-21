@@ -314,16 +314,15 @@ var databaseHeader = `
 # Databases
 #
 ###########################
-
 `
 
 var notifierHeader = `
+
 ###########################
 #
 # Notifiers
 #
 ###########################
-
 `
 
 // PrintSampleConfig prints the sample config
@@ -420,7 +419,7 @@ func printConfig(name string, d data, cat string, commented bool) string {
 	if commented {
 		comment = "# "
 	}
-	header := fmt.Sprintf("\n%s# %s\n%s[[%s.%s]]\n", comment, d.Description(), comment, cat, name)
+	header := fmt.Sprintf("%s# %s\n%s[[%s.%s]]\n", comment, d.Description(), comment, cat, name)
 	body := ""
 
 	config := d.SampleConfig()

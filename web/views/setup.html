@@ -39,7 +39,7 @@
             <h2>This form is here to help you with first time setup</h2>
 
             <form action="/" method="POST" novalidate>
-                <h4>First is the creation of the first admin</h4>
+                <h4>Details for the first admin user</h4>
                 <label>Admin name:</label><br />
                 <input type="text" name="name"><br />
                 <label>Admin username:</label><br />
@@ -54,7 +54,7 @@
                 <input type="password" name="password"><br />
                 <br />
 
-                <h4>Now for initial gogios configuration</h4>
+                <h4>Initial gogios Configuration</h4>
                 <label>How often should checks run (in minutes):</label><br />
                 {{ with .Errors.interval }}
                 <p class="error">{{ . }}</p>
@@ -67,7 +67,7 @@
                 <input type="number" name="timeout" value="60"><br />
                 <br />
 
-                <h4>gogios web configuration</h4>
+                <h4>gogios Web Configuration</h4>
                 <label>What IP address should gogios listen on? (127.0.0.1 for localhost only, 0.0.0.0 for any, or
                     specify the address of an interface to only accept connections from that network):</label><br />
                 {{ with .Errors.webip }}
@@ -75,7 +75,7 @@
                 {{ end }}
                 <input type="text" name="webip" value="127.0.0.1"><br />
                 <br />
-                <label>Which port should the web server listen on?</label><br />
+                <label>Which port should the web server listen on:</label><br />
                 {{ with .Errors.webport }}
                 <p class="error">{{ . }}</p>
                 {{ end }}
@@ -114,7 +114,7 @@
                 <input type="text" name="title" value="Ginger Technology Service Check Engine"><br />
                 <br />
 
-                <p>Now for a bit of database configuration.</p>
+                <h4>Primary Database Configuration</h4>>
                 <label>Which database should be used (a fallback database can be configured later):</label><br />
                 {{ with .Errors.database }}
                 <p class="error">{{ . }}</p>

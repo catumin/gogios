@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/bkasin/gogios"
 	"github.com/bkasin/gogios/api"
 	_ "github.com/bkasin/gogios/databases/all"
+	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/config"
 	_ "github.com/bkasin/gogios/notifiers/all"
 	"github.com/bkasin/gogios/setup"
@@ -72,12 +72,12 @@ func main() {
 	// Need at least one database to start
 	if len(config.Conf.DatabaseNames()) == 0 {
 		initialLogger.Errorln("gogios needs at least one database enabled to start.\nSetup webpage is being exposed.")
-		setup.FirstSetup()
+		setup.FirstSetup(*configFile)
 
 		fmt.Println("Passed setup")
 	}
 
-	err = initPlugins()
+	err = config.InitPlugins()
 	if err != nil {
 		initialLogger.Errorf("Could not initialize plugins. Error:\n%s", err.Error())
 		os.Exit(1)
@@ -229,18 +229,6 @@ func runChecks(t time.Time) {
 	}
 }
 
-func getCommandOutput(logger *logger.Logger, command string, args []string) (output string) {
-	cmd := exec.Command(command, args...)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		logger.Errorf("cmd.Run() failed with %s\n", err)
-		return
-	}
-	sha := string(out)
-
-	return sha
-}
-
 // doEvery - Run function f every d length of time
 func doEvery(d time.Duration, f func(time.Time)) {
 	for x := range time.Tick(d) {
@@ -250,25 +238,7 @@ func doEvery(d time.Duration, f func(time.Time)) {
 
 func check(logger *logger.Logger, check gogios.Check) string {
 	var args = []string{"-c", check.Command}
-	var output = getCommandOutput(logger, "/bin/sh", args)
+	var output = helpers.GetCommandOutput(logger, "/bin/sh", args)
 
 	return output
-}
-
-// initPlugins calls the Init() function on any enabled notifiers and databases
-func initPlugins() error {
-	for _, d := range config.Conf.Databases {
-		err := d.Database.Init()
-		if err != nil {
-			return fmt.Errorf("could not initialize database %s: %v", d.Config.Name, err)
-		}
-	}
-	for _, n := range config.Conf.Notifiers {
-		err := n.Notifier.Init()
-		if err != nil {
-			return fmt.Errorf("could not initialize notifier %s: %v", n.Config.Name, err)
-		}
-	}
-
-	return nil
 }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gogios First Time Setup</title>
+
+    <link rel="stylesheet" href="/static/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/site.css" />
+</head>
+
+<body>
+    <style type="text/css">
+        .error {
+            color: red;
+        }
+    </style>
+
+    <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/"><img src="/static/gogios.png" alt="" width="150" height="50">
+                gogios First Time Setup</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="navbarResponsive" class="collapse navbar-collapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://github.com/BKasin/gogios/wiki">About</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        <div style="margin-top:20px">
+            <h1>Welcome to gogios!</h1>
+
+            <form action="/" method="POST" id="conform" novalidate>
+                <p>Below is the config that was created by the setup form. Make any changes that you want and then click
+                    the submit button to write the config. Alternatively, you can copy and paste this into the
+                    gogios.toml file in /etc/gogios/gogios.toml.</p>
+                <textarea rows="125" cols="100" name="config" form="conform">{{ . }}</textarea>
+                <br />
+                <input type="submit" value="Confirm">
+            </form>
+        </div>
+
+        <hr />
+
+        <footer>
+            <p>&copy; 2018-2020 - Ginger Technology || Bailey Kasin</p>
+        </footer>
+    </div>
+
+    <script src="/static/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>
