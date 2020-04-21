@@ -33,7 +33,7 @@ golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 # golang.org/x/sys v0.0.0-20190412213103-97732733099d
 golang.org/x/sys/windows
-golang.org/x/sys/windows/svc/eventlog
 golang.org/x/sys/windows/registry
+golang.org/x/sys/windows/svc/eventlog
 # google.golang.org/appengine v1.4.0
 google.golang.org/appengine/cloudsql

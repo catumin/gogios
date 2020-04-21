@@ -83,6 +83,3 @@ elif [[ -f /etc/os-release ]]; then
         install_systemd /usr/lib/systemd/system/gogios.service
     fi
 fi
-
-# Gogios will fail to start if these files aren't owned
-chown gogios:gogios -R /opt/gogios

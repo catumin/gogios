@@ -45,7 +45,7 @@ func (s *Slack) Notify(check, time, output, status string) error {
 	api := slack.New(s.Token)
 	attachment := slack.Attachment{
 		Fields: []slack.AttachmentField{
-			slack.AttachmentField{
+			{
 				Title: "Output",
 				Value: output,
 			},
