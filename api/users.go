@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bkasin/gogios"
+	"github.com/bkasin/gogios/helpers/config"
 	"github.com/bkasin/gogios/users"
 )
 
@@ -30,7 +31,7 @@ func createNewUser(w http.ResponseWriter, r *http.Request) {
 		apiLogger.Errorf("Create new user JSON error:\n%v", err.Error())
 	}
 
-	err = users.CreateUser(user, configuration)
+	err = users.CreateUser(user, config.Conf)
 	if err != nil {
 		apiLogger.Errorf("Create new user error:\n%v", err.Error())
 		resp = map[string]interface{}{"status": "Failed", "error": err.Error()}

@@ -35,9 +35,27 @@ var sampleConfig = `
   database = "gogios"
 `
 
+var subConfig = `
+  ## MySQL server IP or address
+  host = "%s"
+  port = %s
+
+  ## Username and password to authentication with
+  user = "%s"
+  password = "%s"
+
+  ## Name of the database that will be used
+  database = "%s"
+`
+
 // SampleConfig returns the default config for MySQL
 func (m *MySQL) SampleConfig() string {
 	return sampleConfig
+}
+
+// SubConfig returns the default config ready for variable substitution
+func (m *MySQL) SubConfig() string {
+	return subConfig
 }
 
 // Description returns a brief explanation of the database

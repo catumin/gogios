@@ -41,6 +41,7 @@ type CheckHistory struct {
 // Database object declaration
 type Database interface {
 	SampleConfig() string
+	SubConfig() string
 
 	Description() string
 

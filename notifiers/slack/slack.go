@@ -22,8 +22,19 @@ var sampleConfig = `
   chats = ""
 `
 
+var subConfig = `
+  ## Slack bot API token
+  token = "%s"
+  ## Channel ID to post message to
+  chats = "%s"
+`
+
 func (s *Slack) SampleConfig() string {
 	return sampleConfig
+}
+
+func (s *Slack) SubConfig() string {
+	return subConfig
 }
 
 func (s *Slack) Description() string {
@@ -34,7 +45,7 @@ func (s *Slack) Notify(check, time, output, status string) error {
 	api := slack.New(s.Token)
 	attachment := slack.Attachment{
 		Fields: []slack.AttachmentField{
-			slack.AttachmentField{
+			{
 				Title: "Output",
 				Value: output,
 			},

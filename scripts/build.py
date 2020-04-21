@@ -28,7 +28,7 @@ LOGROTATE_DIR = "/etc/logrotate.d"
 
 INIT_SCRIPT = "scripts/init.sh"
 SYSTEMD_SCRIPT = "scripts/gogios.service"
-DEFAULT_CONFIG = "package_files/gogios.toml"
+DEFAULT_CONFIG = "package_files/gogios.sample.toml"
 POSTINST_SCRIPT = "scripts/post-install.sh"
 PREINST_SCRIPT = "scripts/pre-install.sh"
 POSTREMOVE_SCRIPT = "scripts/post-remove.sh"
@@ -37,7 +37,7 @@ EXAMPLE_CHECKS = "package_files/example.json"
 LOGROTATE_SCRIPT = "package_files/logrotate"
 
 CONFIGURATION_FILES = [
-    CONFIG_DIR + '/gogios.toml',
+    CONFIG_DIR + '/gogios.sample.toml',
     LOGROTATE_DIR + '/gogios',
 ]
 
@@ -56,7 +56,7 @@ go_vet_command = "go tool vet -composites=true ./"
 optional_prereqs = ['gvm', 'fpm', 'rpmbuild']
 
 # Packages that the final result will recommend on install
-optional_depends = ['nginx' 'sqlite3']
+optional_depends = ['nginx', 'sqlite3', 'nmap']
 
 fpm_common_args = "-f -s dir --log error \
     --vendor {} \
@@ -75,7 +75,7 @@ fpm_common_args = "-f -s dir --log error \
     PACKAGE_URL,
     PACKAGE_LICENSE,
     MAINTAINER,
-    CONFIG_DIR + '/gogios.toml',
+    CONFIG_DIR + '/gogios.sample.toml',
     LOGROTATE_DIR + '/gogios',
     POSTINST_SCRIPT,
     PREINST_SCRIPT,
@@ -141,9 +141,9 @@ def package_scripts(build_root, config_only=False):
     if config_only:
         logging.info("Copying configuration to build directory")
         shutil.copyfile(DEFAULT_CONFIG, os.path.join(
-            build_root, "gogios.toml"))
+            build_root, "gogios.sample.toml"))
 
-        os.chmod(os.path.join(build_root, "gogios.toml"), 0o644)
+        os.chmod(os.path.join(build_root, "gogios.sample.toml"), 0o644)
     else:
         logging.info("Copying scripts and configuration to build directory")
         shutil.copyfile(INIT_SCRIPT, os.path.join(
@@ -158,9 +158,9 @@ def package_scripts(build_root, config_only=False):
             build_root, LOGROTATE_DIR[1:], "gogios"))
         os.chmod(os.path.join(build_root, LOGROTATE_DIR[1:], "gogios"), 0o644)
         shutil.copyfile(DEFAULT_CONFIG, os.path.join(
-            build_root, CONFIG_DIR[1:], "gogios.toml"))
+            build_root, CONFIG_DIR[1:], "gogios.sample.toml"))
         os.chmod(os.path.join(
-            build_root, CONFIG_DIR[1:], "gogios.toml"), 0o644)
+            build_root, CONFIG_DIR[1:], "gogios.sample.toml"), 0o644)
         shutil.copy(NMAP_PARSE, os.path.join(
             build_root, INSTALL_ROOT_DIR[1:], "gogios-parse-nmap"))
         os.chmod(os.path.join(
@@ -698,10 +698,10 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                                 POSTINST_SCRIPT)
                         elif package_type == "deb":
                             for p in optional_depends:
-                                fpm_command += "--deb-recommends {}".format(p)
+                                fpm_command += "--deb-recommends {} ".format(p)
                         elif package_type == "pacman":
                             for p in optional_depends:
-                                fpm_command += "--pacman-optional-depends {}".format(p)
+                                fpm_command += "--pacman-optional-depends {} ".format(p)
                         out = run(fpm_command, shell=True)
                         matches = re.search(':path=>"(.*)"', out)
                         outfile = None

@@ -60,9 +60,9 @@
 ###########################
 
 
+
 # # Output check data to a MySQL database
-# [[databases.mysql]]
-#   ## MySQL server IP or address
+# [[databases.mysql]]#   ## MySQL server IP or address
 #   host = "127.0.0.1"
 #   port = 3306
 #
@@ -74,10 +74,10 @@
 #   database = "gogios"
 
 
-# Output check data to a Sqlite3 database file
-[[databases.sqlite]]
-  ## Sqlite3 db path
-  db_file = "/var/lib/gogios/gogios.db"
+
+# # Output check data to a Sqlite3 database file
+# [[databases.sqlite]]#   ## Sqlite3 db path
+#   db_file = "/var/lib/gogios/gogios.db"
 
 
 ###########################
@@ -87,17 +87,17 @@
 ###########################
 
 
+
 # # Send a notification to a Slack channel using a bot when a check changes states
-# [[notifiers.slack]]
-#   ## Slack bot API token
+# [[notifiers.slack]]#   ## Slack bot API token
 #   token = ""
 #   ## Channel ID to post message to
 #   chats = ""
 
 
+
 # # Send a notification to a Telegram channel using a bot when a check changes states
-# [[notifiers.telegram]]
-#   ## Telegram bot API key
+# [[notifiers.telegram]]#   ## Telegram bot API key
 #   api = ""
 #   ## Chat to post to, usually a negative number for groups and a positive one for direct
 #   chats = [""]
@@ -106,9 +106,9 @@
 #   response_timeout = "10s"
 
 
+
 # # Send a text message to a phone number using Twilio's REST API
-# [[notifiers.twilio]]
-#   ## Account SID
+# [[notifiers.twilio]]#   ## Account SID
 #   sid = ""
 #   ## Account auth token
 #   token = ""
@@ -119,4 +119,3 @@
 #
 #   ## HTTP response timeout (default: 10s)
 #   response_timeout = "10s"
-

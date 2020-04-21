@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -14,8 +13,10 @@ import (
 	"github.com/bkasin/gogios"
 	"github.com/bkasin/gogios/api"
 	_ "github.com/bkasin/gogios/databases/all"
+	"github.com/bkasin/gogios/helpers"
 	"github.com/bkasin/gogios/helpers/config"
 	_ "github.com/bkasin/gogios/notifiers/all"
+	"github.com/bkasin/gogios/setup"
 	"github.com/bkasin/gogios/web"
 	"github.com/google/logger"
 )
@@ -35,7 +36,7 @@ func main() {
 	}
 
 	// Read and print the config file
-	conf := config.NewConfig()
+	config.Conf = config.NewConfig()
 
 	// Prepare the logger for initialization tasks
 	log, err := os.OpenFile("/var/log/gogios/init.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
@@ -44,21 +45,21 @@ func main() {
 	}
 	defer log.Close()
 
-	initialLogger := logger.Init("InitialLog", conf.Options.Verbose, true, log)
+	initialLogger := logger.Init("InitialLog", config.Conf.Options.Verbose, true, log)
 	defer initialLogger.Close()
 	initialLogger.Infof("Gogios pid=%d", os.Getpid())
 
-	err = conf.GetConfig(*configFile)
+	err = config.Conf.GetConfig(*configFile)
 	if err != nil {
 		initialLogger.Errorf("Config file could not be read, error return:\n%s", err.Error())
 	}
 
-	initialLogger.Infoln(conf.DatabaseNames())
-	initialLogger.Infoln(conf.NotifierNames())
+	initialLogger.Infoln(config.Conf.DatabaseNames())
+	initialLogger.Infoln(config.Conf.NotifierNames())
 
 	// If -notify is set, then send the message and exit before checking databases
 	if *notify != "" {
-		for _, notifier := range conf.Notifiers {
+		for _, notifier := range config.Conf.Notifiers {
 			err := notifier.Notifier.Notify("External Message", time.Now().Format(time.RFC822), *notify, "Send")
 			if err != nil {
 				initialLogger.Errorln(err.Error())
@@ -69,12 +70,14 @@ func main() {
 	}
 
 	// Need at least one database to start
-	if len(conf.DatabaseNames()) == 0 {
-		initialLogger.Errorln("gogios needs at least one database enabled to start.\nSqlite is the easiest to get started with.")
-		os.Exit(1)
+	if len(config.Conf.DatabaseNames()) == 0 {
+		initialLogger.Errorln("gogios needs at least one database enabled to start.\nSetup webpage is being exposed.")
+		setup.FirstSetup(*configFile)
+
+		fmt.Println("Passed setup")
 	}
 
-	err = initPlugins(conf)
+	err = config.InitPlugins()
 	if err != nil {
 		initialLogger.Errorf("Could not initialize plugins. Error:\n%s", err.Error())
 		os.Exit(1)
@@ -84,21 +87,21 @@ func main() {
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin:/usr/lib/gogios/plugins")
 
 	// Do a round of checks immediately...
-	runChecks(time.Now(), conf)
+	runChecks(time.Now())
 
 	// ... and then every $interval
-	go doEvery(conf.Options.Interval.Duration, runChecks, conf)
+	go doEvery(config.Conf.Options.Interval.Duration, runChecks)
 
 	// Expose the REST API
-	if conf.WebOptions.ExposeAPI {
-		go api.API(conf)
+	if config.Conf.WebOptions.ExposeAPI {
+		go api.API()
 	}
 
 	// Start serving the website
-	web.ServePage(conf)
+	web.ServePage()
 }
 
-func runChecks(t time.Time, conf *config.Config) {
+func runChecks(t time.Time) {
 	// Start the service check logger
 	log, err := os.OpenFile("/var/log/gogios/service_check.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
@@ -106,7 +109,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	}
 	defer log.Close()
 
-	checkLogger := logger.Init("ServiceCheck", conf.Options.Verbose, true, log)
+	checkLogger := logger.Init("ServiceCheck", config.Conf.Options.Verbose, true, log)
 	defer checkLogger.Close()
 
 	// Read the raw check list into memory
@@ -125,7 +128,7 @@ func runChecks(t time.Time, conf *config.Config) {
 	}
 
 	// Use the first configured database as the primary for holding data
-	primaryDB := conf.Databases[0].Database
+	primaryDB := config.Conf.Databases[0].Database
 	allPrev, err := primaryDB.GetAllChecks()
 	if err != nil {
 		checkLogger.Errorf("Could not read database, error return:\n%s", err.Error())
@@ -168,7 +171,7 @@ func runChecks(t time.Time, conf *config.Config) {
 					goodCount++
 				}
 				Output = output
-			case <-time.After(conf.Options.Timeout.Duration):
+			case <-time.After(config.Conf.Options.Timeout.Duration):
 				curr[i].Status = "Timed Out"
 			}
 
@@ -178,7 +181,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 			// Send out notifications through all enabled notifiers
 			if prev.Title != "" && curr[i].Status != prev.Status {
-				for _, notifier := range conf.Notifiers {
+				for _, notifier := range config.Conf.Notifiers {
 					err := notifier.Notifier.Notify(curr[i].Title, curr[i].Asof.Format(time.RFC822), Output, curr[i].Status)
 					if err != nil {
 						checkLogger.Errorln(err.Error())
@@ -191,7 +194,7 @@ func runChecks(t time.Time, conf *config.Config) {
 			curr[i].ID = prev.ID
 
 			// Update or add rows for each configured database, then remove from allPrev[]
-			for _, database := range conf.Databases {
+			for _, database := range config.Conf.Databases {
 				err := database.Database.AddCheck(curr[i], Output)
 				if err != nil {
 					checkLogger.Errorln(err.Error())
@@ -205,12 +208,11 @@ func runChecks(t time.Time, conf *config.Config) {
 			}
 
 			checkLogger.Infof("Check %s status: %s as of: %s\n", curr[i].Title, curr[i].Status, curr[i].Asof.Format(time.RFC822))
-			if conf.Options.Verbose {
+			if config.Conf.Options.Verbose {
 				checkLogger.Infof("Output: \n%s", Output)
 			}
-			fmt.Println(curr[i].Title)
 
-			web.UpdateWebData(conf)
+			web.UpdateWebData()
 		}(i)
 	}
 
@@ -218,7 +220,7 @@ func runChecks(t time.Time, conf *config.Config) {
 
 	// Delete whatever is left in allPrev from the database
 	for i := 0; i < len(allPrev); i++ {
-		for _, database := range conf.Databases {
+		for _, database := range config.Conf.Databases {
 			err := database.Database.DeleteCheck(allPrev[i], "id")
 			if err != nil {
 				checkLogger.Errorln(err.Error())
@@ -227,46 +229,16 @@ func runChecks(t time.Time, conf *config.Config) {
 	}
 }
 
-func getCommandOutput(logger *logger.Logger, command string, args []string) (output string) {
-	cmd := exec.Command(command, args...)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		logger.Errorf("cmd.Run() failed with %s\n", err)
-		return
-	}
-	sha := string(out)
-
-	return sha
-}
-
 // doEvery - Run function f every d length of time
-func doEvery(d time.Duration, f func(time.Time, *config.Config), conf *config.Config) {
+func doEvery(d time.Duration, f func(time.Time)) {
 	for x := range time.Tick(d) {
-		f(x, conf)
+		f(x)
 	}
 }
 
 func check(logger *logger.Logger, check gogios.Check) string {
 	var args = []string{"-c", check.Command}
-	var output = getCommandOutput(logger, "/bin/sh", args)
+	var output = helpers.GetCommandOutput(logger, "/bin/sh", args)
 
 	return output
-}
-
-// initPlugins calls the Init() function on any enabled notifiers and databases
-func initPlugins(conf *config.Config) error {
-	for _, d := range conf.Databases {
-		err := d.Database.Init()
-		if err != nil {
-			return fmt.Errorf("could not initialize database %s: %v", d.Config.Name, err)
-		}
-	}
-	for _, n := range conf.Notifiers {
-		err := n.Notifier.Init()
-		if err != nil {
-			return fmt.Errorf("could not initialize notifier %s: %v", n.Config.Name, err)
-		}
-	}
-
-	return nil
 }
