@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -113,7 +112,7 @@ func runChecks(t time.Time) {
 	defer checkLogger.Close()
 
 	// Read the raw check list into memory
-	raw, err := ioutil.ReadFile("/etc/gogios/checks.json")
+	raw, err := os.ReadFile("/etc/gogios/checks.json")
 	if err != nil {
 		checkLogger.Errorf("Check file could not be read, error return:\n%s", err.Error())
 		os.Exit(1)

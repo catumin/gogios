@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Token struct {
 	UserID   uint
 	Name     string
 	Username string
-	*jwt.StandardClaims
+	*jwt.RegisteredClaims
 }
 
 // JwtVerify check the the JWT token provided in the Headers

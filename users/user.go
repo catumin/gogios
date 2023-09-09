@@ -6,7 +6,7 @@ import (
 
 	"github.com/bkasin/gogios"
 	"github.com/bkasin/gogios/helpers/config"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -36,7 +36,7 @@ func Login(username, password string, db gogios.Database) map[string]interface{}
 		return resp
 	}
 
-	expiresAt := time.Now().Add(time.Minute * 100000).Unix()
+	expiresAt := jwt.NewNumericDate(time.Now().Add(time.Minute * 100000))
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
@@ -47,8 +47,8 @@ func Login(username, password string, db gogios.Database) map[string]interface{}
 	tk := Token{
 		UserID: user.ID,
 		Name:   user.Name,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: expiresAt,
+		RegisteredClaims: &jwt.RegisteredClaims{
+			ExpiresAt: *&expiresAt,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
